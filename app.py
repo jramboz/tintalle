@@ -150,6 +150,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     sc: Saber_Controller = None
     config_ini: dict = None
     files_dict: dict = None
+    saber_info: dict = None
     log = logging.getLogger()
 
     def __init__(self, *args, obj=None, **kwargs) -> None:
@@ -247,6 +248,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.sc = Saber_Controller(port, gui=True)
         self.reload_saber_configuration()
         self.display_connection_status(SCStatus.CONNECTED)
+        self.log.info(f'Connected to saber.\nSerial Number: {self.saber_info["serial"]}\nFirmware version: {self.saber_info["version"]}')
 
     def reload_saber_configuration(self):
         '''Reload the files list and configuration files from the saber.'''
@@ -266,6 +268,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.log.debug(f'Retrieved config.ini:\n{self.config_ini}')
         self.files_dict = self.sc.list_files_on_saber()
         self.log.debug(f'Retrieved files from saber:\n{self.files_dict}')
+        self.saber_info = self.sc.get_saber_info()
+        self.log.debug(f'Retrieved saber info: {self.saber_info}')
+        self.log.info('Successfully retrieved configuration from saber.')
 
         w.close()
 
