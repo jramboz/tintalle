@@ -195,32 +195,39 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.saber_select_box.clear()
             self.connect_button.setEnabled(False)
             self.status_label.setText('SEARCHING...')
-            self.saber_select_box.setEnabled(False)
+            self.set_ui_enabled(False)
         elif status == SCStatus.CONNECTED:
             self.connect_button.setEnabled(True)
             self.connect_button.setText('Disconnect')
-            self.saber_select_box.setEnabled(False)
             self.status_label.setText('CONNECTED')
-            self.content_tabWidget.setEnabled(True)
-            self.action_Reload_Config.setEnabled(True)
+            self.set_ui_enabled(True)
         elif status == SCStatus.CONNECTING:
             self.connect_button.setEnabled(False)
-            self.saber_select_box.setEnabled(False)
             self.status_label.setText('CONNECTING...')
+            self.set_ui_enabled(False)
         elif status == SCStatus.DISCONNECTED:
             self.connect_button.setEnabled(True)
             self.connect_button.setText('Connect')
-            self.saber_select_box.setEnabled(True)
             self.status_label.setText('DISCONNECTED')
-            self.content_tabWidget.setEnabled(False)
-            self.action_Reload_Config.setEnabled(False)
+            self.set_ui_enabled(False)
         elif status == SCStatus.NO_SABER:
             self.connect_button.setEnabled(False)
             self.connect_button.setText('Connect')
             self.status_label.setText('No Saber Found')
+            self.set_ui_enabled(False)
             self.saber_select_box.setEnabled(False)
-            self.content_tabWidget.setEnabled(False)
-            self.action_Reload_Config.setEnabled(False)
+
+    def set_ui_enabled(self, connected: bool = True) -> None:
+       '''Enable or disable UI elements dependent on having a saber connected.''' 
+       if connected:
+           self.content_tabWidget.setEnabled(True)
+           self.action_Reload_Config.setEnabled(True)
+           self.saber_select_box.setEnabled(False)
+       else: # disconnected
+           self.content_tabWidget.setEnabled(False)
+           self.action_Reload_Config.setEnabled(False)
+           self.saber_select_box.setEnabled(True)
+           
 
     def connect_button_handler(self):
         if self.sc: # if connected, disconnect
