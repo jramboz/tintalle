@@ -187,6 +187,7 @@
      <string>Connection</string>
     </property>
     <addaction name="action_Refresh_Ports"/>
+    <addaction name="action_Reload_Config"/>
    </widget>
    <widget class="QMenu" name="menuTroubleshooting">
     <property name="title">
@@ -205,6 +206,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="action_Show_Hide_Log">
@@ -227,6 +231,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="action_Reload_Config">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Reload &amp;Config</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
    </property>
   </action>
  </widget>

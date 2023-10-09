@@ -167,6 +167,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Refresh_Ports.triggered.connect(self.update_ports)
         self.action_Show_Hide_Log.triggered.connect(self.show_hide_log_handler)
         self.action_Debug_Mode.triggered.connect(self.debug_mode_handler)
+        self.action_Reload_Config.triggered.connect(self.reload_saber_configuration)
         self.erase_button.clicked.connect(self.erase_button_handler)
         self.upload_button.clicked.connect(self.upload_button_handler)
         self.show()
@@ -201,6 +202,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.saber_select_box.setEnabled(False)
             self.status_label.setText('CONNECTED')
             self.content_tabWidget.setEnabled(True)
+            self.action_Reload_Config.setEnabled(True)
         elif status == SCStatus.CONNECTING:
             self.connect_button.setEnabled(False)
             self.saber_select_box.setEnabled(False)
@@ -211,12 +213,14 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.saber_select_box.setEnabled(True)
             self.status_label.setText('DISCONNECTED')
             self.content_tabWidget.setEnabled(False)
+            self.action_Reload_Config.setEnabled(False)
         elif status == SCStatus.NO_SABER:
             self.connect_button.setEnabled(False)
             self.connect_button.setText('Connect')
             self.status_label.setText('No Saber Found')
             self.saber_select_box.setEnabled(False)
             self.content_tabWidget.setEnabled(False)
+            self.action_Reload_Config.setEnabled(False)
 
     def connect_button_handler(self):
         if self.sc: # if connected, disconnect
@@ -234,11 +238,29 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         if not self.sc:
             port = self.saber_select_box.currentText()
             self.sc = Saber_Controller(port, gui=True)
+        self.reload_saber_configuration()
+        self.display_connection_status(SCStatus.CONNECTED)
+
+    def reload_saber_configuration(self):
+        '''Reload the files list and configuration files from the saber.'''
+        # display a "loading" dialog. Probably this will happen fast enough that most people won't even see it.
+        w = QDialog(parent=self)
+        w.setModal(True)
+        w.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint)
+        w.layout = QVBoxLayout()
+        w.layout.addWidget(QLabel("Reading configuration from saber."))
+        bar = QProgressBar()
+        bar.setMaximum(0)
+        w.layout.addWidget(bar)
+        w.setLayout(w.layout)
+        w.show()
+
         self.config_ini = eval(self.sc.read_config_ini())
         self.log.debug(f'Retrieved config.ini:\n{self.config_ini}')
         self.files_dict = self.sc.list_files_on_saber()
         self.log.debug(f'Retrieved files from saber:\n{self.files_dict}')
-        self.display_connection_status(SCStatus.CONNECTED)
+
+        w.close()
 
     def disconnect_saber(self):
         '''Disconnect saber and perform any necessary cleanup'''
