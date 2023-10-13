@@ -229,6 +229,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
            self.action_Reload_Config.setEnabled(False)
            self.saber_select_box.setEnabled(True)
            
+    def error_handler(self, e):
+        '''Generic error handler.'''
+        self.log.error('An error has occurred.')
+        self.log.error(e)
 
     def connect_button_handler(self):
         if self.sc: # if connected, disconnect
@@ -237,7 +241,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             try:
                 self.connect_saber()
             except NoAnimaSaberException:
-                # TODO: add error display dialog
+                self.error_handler(NoAnimaSaberException)
                 self.display_connection_status(SCStatus.DISCONNECTED)
     
     def connect_saber(self):
@@ -288,8 +292,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def debug_mode_handler(self, enabled: bool):
         if enabled:
             self.log.setLevel(logging.DEBUG)
+            if self.sc:
+                self.sc.log.setLevel(logging.DEBUG)
         else:
             self.log.setLevel(logging.INFO)
+            if self.sc:
+                self.sc.log.setLevel(logging.INFO)
 
     def erase_button_handler(self):
         button = QMessageBox.warning(
@@ -314,7 +322,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             def e(error: tuple):
                 '''What to do with an error.'''
                 pd.report("An error has occurred. See the log for details.")
-                self.log.error(error)
+                self.error_handler(e)
 
             def r(obj: object):
                 '''What to do with task result.'''
