@@ -60,6 +60,7 @@ class Worker(QRunnable):
         if not 'noprogress' in kwargs: #pass a kwarg called 'noprogress' with any value to suppress progress reporting callback
                                        # this is so that our worker can wrap functions that don't accept a 'progress_callback' kwarg
             self.kwargs['progress_callback'] = self.signals.progress
+            del self.kwargs['noprogress']
 
     @Slot()
     def run(self):
