@@ -5,11 +5,13 @@ import logging
 class Progress_Dialog(QDialog):
     '''Simple dialog to display progress of a task and activate a close button when complete.'''
 
-    def __init__(self, parent=None, title: str = "Progress", message: str = "Task Progress:" ):
+    def __init__(self, parent=None, title: str = "Progress", message: str = "Task Progress:", autoclose: bool = False ):
         super().__init__(parent)
-        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Close)
-        self.buttonBox.button(QDialogButtonBox.Close).setEnabled(False)
-        self.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self.close)
+        self.autoclose = autoclose
+        if not autoclose:
+            self.buttonBox = QDialogButtonBox(QDialogButtonBox.Close)
+            self.buttonBox.button(QDialogButtonBox.Close).setEnabled(False)
+            self.buttonBox.button(QDialogButtonBox.Close).clicked.connect(self.close)
         self.setWindowTitle(title)
         self.setModal(True)
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowTitleHint)
@@ -20,7 +22,8 @@ class Progress_Dialog(QDialog):
         self.layout.addWidget(QLabel(message))
         self.layout.addWidget(self.progressBar)
         self.layout.addWidget(self.reportLabel)
-        self.layout.addWidget(self.buttonBox)
+        if not autoclose:
+            self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
 
         self.show()
@@ -31,7 +34,10 @@ class Progress_Dialog(QDialog):
 
     def finished(self):
         '''Call this when action is finished and dialog can be closed.'''
-        self.buttonBox.button(QDialogButtonBox.Close).setEnabled(True)
+        if self.autoclose:
+            self.close()
+        else:
+            self.buttonBox.button(QDialogButtonBox.Close).setEnabled(True)
 
 class File_Upload_Progress_Dialog(QDialog):
     halt = False # set to True to cancel after the curent file is finished uploading
