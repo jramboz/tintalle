@@ -57,7 +57,9 @@ class Worker(QRunnable):
         self.signals = WorkerSignals()
 
         # Add the callback to our kwargs
-        self.kwargs['progress_callback'] = self.signals.progress
+        if not 'noprogress' in kwargs: #pass a kwarg called 'noprogress' with any value to suppress progress reporting callback
+                                       # this is so that our worker can wrap functions that don't accept a 'progress_callback' kwarg
+            self.kwargs['progress_callback'] = self.signals.progress
 
     @Slot()
     def run(self):
