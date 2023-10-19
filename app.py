@@ -148,7 +148,7 @@ class Upload_Controller():
 
 class Main_Window(QMainWindow, Ui_MainWindow):
     sc: Saber_Controller = None
-    config_ini: dict = None
+    saber_config: dict = None
     files_dict: dict = None
     saber_info: dict = None
     log = logging.getLogger()
@@ -268,8 +268,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         w.setLayout(w.layout)
         w.show()
 
-        self.config_ini = eval(self.sc.read_config_ini())
-        self.log.debug(f'Retrieved config.ini:\n{self.config_ini}')
+        self.saber_config = eval(self.sc.read_config_ini())
+        self.log.debug(f'Retrieved config.ini:\n{self.saber_config}')
         self.files_dict = self.sc.list_files_on_saber()
         self.log.debug(f'Retrieved files from saber:\n{self.files_dict}')
         self.saber_info = self.sc.get_saber_info()
