@@ -1,2 +1,4 @@
 Pyside6
 py2saber
+requests
+wget
