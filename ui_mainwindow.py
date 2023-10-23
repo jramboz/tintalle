@@ -157,7 +157,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Elentari", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Tintalle", None))
         self.action_Refresh_Ports.setText(QCoreApplication.translate("MainWindow", u"&Refresh Ports", None))
 #if QT_CONFIG(shortcut)
         self.action_Refresh_Ports.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+R", None))

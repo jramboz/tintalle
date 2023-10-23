@@ -242,6 +242,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             worker.signals.progress.connect(pd.progressBar.setValue)
 
             # execute thread and show progress dialog
+            pd.show()
             self.threadpool.start(worker)
 
     uc: Upload_Controller = None
@@ -257,6 +258,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             else:
                 display = File_Upload_Progress_Dialog(parent=self, multifile=True)
                 display.set_num_files(len(files))
+            display.show()
             
             # Create and run the upload controller
             self.uc = Upload_Controller(files, display, self.sc)

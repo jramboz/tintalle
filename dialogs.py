@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLabel, QProgressBar
+from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLabel, QProgressBar, QPlainTextEdit
 import PySide6.QtCore as QtCore
 import logging
 
@@ -26,7 +26,7 @@ class Progress_Dialog(QDialog):
             self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
 
-        self.show()
+        #self.show()
     
     def report(self, msg: str):
         '''Display a message below the progress bar.'''
@@ -38,6 +38,20 @@ class Progress_Dialog(QDialog):
             self.close()
         else:
             self.buttonBox.button(QDialogButtonBox.Close).setEnabled(True)
+
+class External_Process_Dialog(Progress_Dialog):
+    '''Dialog for monitoring an external process.'''
+
+    def __init__(self, parent=None, title: str = "Progress", message: str = "Task Progress:", autoclose: bool = False):
+        super().__init__(parent, title, message, autoclose)
+        self.layout.removeWidget(self.reportLabel)
+        self.reportLabel.deleteLater()
+        self.text = QPlainTextEdit()
+        self.text.setReadOnly(True)
+        if self.autoclose:
+            self.layout.addWidget(self.text)
+        else:
+            self.layout.insertWidget(self.layout.count()-1, self.text)
 
 class File_Upload_Progress_Dialog(QDialog):
     halt = False # set to True to cancel after the curent file is finished uploading
@@ -69,7 +83,7 @@ class File_Upload_Progress_Dialog(QDialog):
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
 
-        self.show()
+        #self.show()
     
     def set_num_files(self, num_files: int):
         '''Set the number of fiiles to be uploaded in this batch.'''
