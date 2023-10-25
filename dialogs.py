@@ -123,7 +123,7 @@ class File_Upload_Progress_Dialog(QDialog):
 def error_handler(error, info = None, parent: QWidget = None) -> None:
     '''Display an error message to the user and log to the log file.'''
     logging.getLogger().error(error)
-    box = QMessageBox(QMessageBox.Critical, 'An error has occurred', error, QMessageBox.Close)
+    box = QMessageBox(QMessageBox.Critical, 'Error', error, QMessageBox.Close)
     if info:
         box.setInformativeText(str(info))
     box.exec()
