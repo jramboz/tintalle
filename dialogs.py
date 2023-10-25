@@ -37,6 +37,7 @@ class Progress_Dialog(QDialog):
         if self.autoclose:
             self.close()
         else:
+            self.report('Task Complete')
             self.buttonBox.button(QDialogButtonBox.Close).setEnabled(True)
 
 class External_Process_Dialog(Progress_Dialog):
