@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLabel, QProgressBar, QPlainTextEdit
+from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLabel, QProgressBar, QPlainTextEdit, QWidget, QMessageBox
 import PySide6.QtCore as QtCore
 import logging
 
@@ -119,3 +119,11 @@ class File_Upload_Progress_Dialog(QDialog):
         self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
         self.fileNameLabel.setText('Upload complete!')
         logging.getLogger().info('Upload complete!')
+
+def error_handler(error, info = None, parent: QWidget = None) -> None:
+    '''Display an error message to the user and log to the log file.'''
+    logging.getLogger().error(error)
+    box = QMessageBox(QMessageBox.Critical, 'An error has occurred', error, QMessageBox.Close)
+    if info:
+        box.setInformativeText(str(info))
+    box.exec()
