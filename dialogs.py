@@ -53,6 +53,9 @@ class External_Process_Dialog(Progress_Dialog):
             self.layout.addWidget(self.text)
         else:
             self.layout.insertWidget(self.layout.count()-1, self.text)
+    
+    def report(self, msg: str):
+        self.text.appendPlainText(msg)
 
 class File_Upload_Progress_Dialog(QDialog):
     halt = False # set to True to cancel after the curent file is finished uploading
