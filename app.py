@@ -1,9 +1,11 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QDialogButtonBox, QVBoxLayout, QLabel, QProgressBar, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QDialogButtonBox, QVBoxLayout, QLabel, QProgressBar, QFileDialog, QPushButton
 import PySide6.QtCore as QtCore
 from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException
 from threadrunner import *
 from dialogs import *
+import version_compare as vc
+import firmware
 from enum import Enum, auto
 import logging
 import sys
@@ -76,6 +78,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Show_Hide_Log.triggered.connect(self.show_hide_log_handler)
         self.action_Debug_Mode.triggered.connect(self.debug_mode_handler)
         self.action_Reload_Config.triggered.connect(self.reload_saber_configuration)
+        self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
+        self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
         self.erase_button.clicked.connect(self.erase_button_handler)
         self.upload_button.clicked.connect(self.upload_button_handler)
         self.show()
@@ -264,6 +268,52 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.uc = Upload_Controller(files, display, self.sc)
             self.uc.run()
 
+    def fw_check_handler(self):
+        self.log.info('Checking for latest OpenCore firwmare.')
+        fw_info = firmware.check_latest_fw_release()
+        self.log.debug(f'Firmware info retrieved: {fw_info}')
+
+        # if a saber is connected, compare to installed FW version
+        if (self.saber_info): #TODO: store an actual connection state that can be checked
+            self.log.debug('Comparing to latest firmware to version installed on connected saber.')
+            self.log.debug(f'Installed version: {self.saber_info["version"]}, Latest version: {fw_info[0]}')
+            if vc.is_higher(fw_info[0], self.saber_info['version']):
+                # Display message and prompt to download/install newer version
+                self.log.info(f'Newer official firmware available: v{fw_info[0]}')
+                r = QMessageBox.question(self, 'New Firmware Available', f'New OpenCore firmware available: v{fw_info[0]}. Would you like to install it?', QMessageBox.Yes | QMessageBox.No)
+                
+                if r == QMessageBox.Yes:
+                    try:
+                        filename = firmware.download_fw(self, url=fw_info[1])
+                        firmware.upload_firmware(filename, self)
+                    except Exception as e:
+                        error_handler(e, parent=self)
+            else:
+                # Display message
+                self.log.info('No newer firmware available.')
+                dlg = QMessageBox(QMessageBox.Information, 'Information', 'No newer firmware available.', QMessageBox.Ok, self)
+                dlg.setInformativeText(f'There is no newer firmware than the one currently installed on your saber. The latest official OpenCore release is v{fw_info[0]}')
+                dlg.exec()
+                
+        else: # no saber connected, display the latest version and offer to download
+            dlg = QMessageBox(self)
+            dlg.setText(f'The latest official OpenCore release is v{fw_info[0]}')
+            dlg.setInformativeText('Click the Save button to download a copy.')
+            dlg.setIcon(QMessageBox.Information)
+            dlg.setStandardButtons(QMessageBox.Save | QMessageBox.Close)
+            dlg.setDefaultButton(QMessageBox.Close)
+            r = dlg.exec()
+
+            if r == QMessageBox.Save:
+                firmware.prompt_for_location_and_download_fw(self, url=fw_info[1])
+
+    def install_firmware_from_file_handler(self):
+        fw_file = QFileDialog.getOpenFileName(self, caption='Open Firmware File', filter='OpenCore Firwmare File (*.hex)')[0]
+        if fw_file:
+            try:
+                firmware.upload_firmware(fw_file, self)
+            except Exception as e:
+                error_handler(e, parent=self)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -196,7 +196,15 @@
     <addaction name="action_Show_Hide_Log"/>
     <addaction name="action_Debug_Mode"/>
    </widget>
+   <widget class="QMenu" name="menuFirmware">
+    <property name="title">
+     <string>Firmware</string>
+    </property>
+    <addaction name="action_Check_for_Latest_Firwmare"/>
+    <addaction name="action_Install_Firmware_from_File"/>
+   </widget>
    <addaction name="menuConnection"/>
+   <addaction name="menuFirmware"/>
    <addaction name="menuTroubleshooting"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -242,6 +250,16 @@
    </property>
    <property name="shortcutVisibleInContextMenu">
     <bool>true</bool>
+   </property>
+  </action>
+  <action name="action_Check_for_Latest_Firwmare">
+   <property name="text">
+    <string>&amp;Check for Latest Firwmare</string>
+   </property>
+  </action>
+  <action name="action_Install_Firmware_from_File">
+   <property name="text">
+    <string>&amp;Install Firmware from File...</string>
    </property>
   </action>
  </widget>
