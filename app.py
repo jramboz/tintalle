@@ -88,6 +88,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.display_connection_status(SCStatus.SEARCHING)
         self.update_ports()
 
+    # --------------------------------- #
+    # Saber connection handling methods #
+    # --------------------------------- #
+
     def update_ports(self) -> None:
         '''Update the list of ports in saber_select_box'''
         self.saber_select_box.clear()
@@ -194,6 +198,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.sc = None
         self.display_connection_status(SCStatus.DISCONNECTED)
 
+    # ------------------------- #
+    # Logging and debug methods #
+    # ------------------------- #
+
     def show_hide_log_handler(self):
         if self.logTextBox.isVisible():
             self.logTextBox.hide()
@@ -209,6 +217,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.log.setLevel(logging.INFO)
             if self.sc:
                 self.sc.log.setLevel(logging.INFO)
+
+    # --------------------------- #
+    # Sound file handling methods #
+    # --------------------------- #
 
     def erase_button_handler(self):
         button = QMessageBox.warning(
@@ -267,6 +279,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             # Create and run the upload controller
             self.uc = Upload_Controller(files, display, self.sc)
             self.uc.run()
+
+    # ------------------------- #
+    # Firmware handling methods #
+    # ------------------------- #
 
     def fw_check_handler(self):
         self.log.info('Checking for latest OpenCore firwmare.')
