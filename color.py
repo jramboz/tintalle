@@ -1,3 +1,8 @@
+# This generates an approximate preview of an RGBW color in RGB. It applies color
+# correction/adjustment based on the LED natural colors and brightness. The idea is that
+# it should give you a relatively decent RGB representation of what an RGBW color will
+# look like on LEDs.
+
 # All the color math here is taken from reverse-engineering the Sabertec Configurator
 # https://sabertec.net/configurator/index.html. I honeslty only vaguely understand how
 # the math works. But it does seem to work!
@@ -112,7 +117,7 @@ def _convert_rgb_to_xy(red, green, blue):
     return [i, o]
 
 def get_mixed_color(r: int, g: int, b: int, w: int) -> list[int]:
-    '''Returns the mixed color (as tuple of RGB 0-255 values) for the input RGBW values.
+    '''Returns the mixed color (as list of RGB 0-255 values) for the input RGBW values.
     Input: RGBW values as int (0-255). This function automatically adjusts for LED color values.'''
     
     # Get adjustment factors based on LED values.
