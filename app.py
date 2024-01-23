@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QDialogButtonBox, QVBoxLayout, QLabel, QProgressBar, QFileDialog, QPushButton
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QVBoxLayout, QLabel, QProgressBar, QFileDialog
+from PySide6.QtGui import QPalette, QColor
 import PySide6.QtCore as QtCore
 from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException
@@ -6,6 +7,7 @@ from threadrunner import *
 from dialogs import *
 import version_compare as vc
 import firmware
+import color
 from enum import Enum, auto
 import logging
 import sys
@@ -78,10 +80,22 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Show_Hide_Log.triggered.connect(self.show_hide_log_handler)
         self.action_Debug_Mode.triggered.connect(self.debug_mode_handler)
         self.action_Reload_Config.triggered.connect(self.reload_saber_configuration)
+        
         self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
         self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
+
+        self.r_slider.valueChanged.connect(self.color_change_handler)
+        self.r_spinbox.valueChanged.connect(self.color_change_handler)
+        self.g_slider.valueChanged.connect(self.color_change_handler)
+        self.g_spinbox.valueChanged.connect(self.color_change_handler)
+        self.b_slider.valueChanged.connect(self.color_change_handler)
+        self.b_spinbox.valueChanged.connect(self.color_change_handler)
+        self.w_slider.valueChanged.connect(self.color_change_handler)
+        self.w_spinbox.valueChanged.connect(self.color_change_handler)
+        
         self.erase_button.clicked.connect(self.erase_button_handler)
         self.upload_button.clicked.connect(self.upload_button_handler)
+
         self.show()
 
         # Search for connected sabers
@@ -330,6 +344,41 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 firmware.upload_firmware(fw_file, self)
             except Exception as e:
                 error_handler(e, parent=self)
+    
+    # ---------------------- #
+    # Color handling methods #
+    # ---------------------- #
+    
+    def color_change_handler(self, value: int):
+        '''Handle value changed in the color specifier'''
+        match self.sender():
+            case self.r_slider | self.r_spinbox:
+               self.r_slider.setValue(value)
+               self.r_spinbox.setValue(value)
+            case self.g_slider | self.g_spinbox:
+               self.g_slider.setValue(value)
+               self.g_spinbox.setValue(value)
+            case self.b_slider | self.b_spinbox:
+               self.b_slider.setValue(value)
+               self.b_spinbox.setValue(value)
+            case self.w_slider | self.w_spinbox:
+               self.w_slider.setValue(value)
+               self.w_spinbox.setValue(value)
+        
+        self.update_color_display()
+
+    def update_color_display(self):
+        '''Update the color preview displays based on the color specified in the GUI state'''
+        if self.main_radioButton.isChecked():
+            box = self.main_color_label
+        elif self.clash_radioButton.isChecked():
+            box = self.clash_color_label
+        elif self.swing_radioButton.isChecked():
+            box = self.swing_color_label
+        
+        p = box.palette()
+        p.setColor(box.backgroundRole(), QColor(*color.get_mixed_color(self.r_spinbox.value(), self.g_spinbox.value(), self.b_spinbox.value(), self.w_spinbox.value())))
+        box.setPalette(p)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
