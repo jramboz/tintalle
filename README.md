@@ -10,6 +10,7 @@ This is still very much a work in progress at the moment. It's not even close to
 - Upload files to saber
 - Check for latest firmware release
 - Update firmware on saber (requires [tycmd](https://github.com/Koromix/tytools/releases) to be installed)
+- **NEW!** Manage saber colors
 
 ## Status
 This is not guaranteed to be bug-free. In fact, it's practically guaranteed to have bugs! I'm just an amateur coder who's doing his best to make a thing. I'm sure there's sloppy code in here, and probably a lot of things that can be done better. But I'm learning as I go, and maybe down the road someone more knowlegable can clean things up.
