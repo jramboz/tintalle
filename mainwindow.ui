@@ -250,7 +250,7 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
              <item>
-              <widget class="QComboBox" name="comboBox">
+              <widget class="QComboBox" name="color_bank_select_box">
                <property name="placeholderText">
                 <string>Color Bank</string>
                </property>
@@ -270,7 +270,7 @@
               </spacer>
              </item>
              <item>
-              <widget class="QPushButton" name="color_reset_button">
+              <widget class="QPushButton" name="reset_changes_button">
                <property name="text">
                 <string>Reset Changes</string>
                </property>
@@ -284,7 +284,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton">
+              <widget class="QPushButton" name="preview_button">
                <property name="text">
                 <string>Preview Color on Saber</string>
                </property>

@@ -22,22 +22,24 @@ class XYZColor:
         self.z = z
 
 # LED color and luminance values
+# Using "true" RGB values for now, 20% lightened, with luminosity adjustments from LDL data sheet
+# TODO: let the user set and store these
 _LEDs = {
     'r': {
-        'color': RGBColor(255, 35, 0),
-        'luminance': 0.752
+        'color': RGBColor(255, 51, 51),
+        'luminance': 1.3
     },
     'g': {
-        'color': RGBColor(0, 255, 40),
-        'luminance': 0.976
+        'color': RGBColor(51, 255, 51),
+        'luminance': 1.9
     },
     'b': {
-        'color': RGBColor(0, 90, 255),
-        'luminance': 0.38
+        'color': RGBColor(51, 51, 255),
+        'luminance': 0.4
     },
     'w': {
         'color': RGBColor(255, 255, 255),
-        'luminance': 2.572
+        'luminance': 2.3
     }
 }
 

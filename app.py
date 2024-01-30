@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QVBoxLayout, QLabel, QProgressBar, QFileDialog
-from PySide6.QtGui import QPalette, QColor
+from PySide6.QtGui import QColor, QPixmap, QIcon
 import PySide6.QtCore as QtCore
 from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException
@@ -7,11 +7,13 @@ from threadrunner import *
 from dialogs import *
 import version_compare as vc
 import firmware
-import color
+import color as Color
 from enum import Enum, auto
 import logging
 import sys
 import os
+from asgiref.sync import sync_to_async
+from AsyncioPySide6 import AsyncioPySide6
 
 class SCStatus(Enum):
     '''Enum for saber connection status'''
@@ -59,9 +61,10 @@ class Upload_Controller():
 
 class Main_Window(QMainWindow, Ui_MainWindow):
     sc: Saber_Controller = None
-    saber_config: dict = None
+    saber_config: dict = None   # holds saber config loaded from saber
     files_dict: dict = None
     saber_info: dict = None
+    current_config: dict = None # holds saber config as modified in the GUI
     log = logging.getLogger()
 
     def __init__(self, *args, obj=None, **kwargs) -> None:
@@ -79,7 +82,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Refresh_Ports.triggered.connect(self.update_ports)
         self.action_Show_Hide_Log.triggered.connect(self.show_hide_log_handler)
         self.action_Debug_Mode.triggered.connect(self.debug_mode_handler)
-        self.action_Reload_Config.triggered.connect(self.reload_saber_configuration)
+        self.action_Reload_Config.triggered.connect(self.reload_config_action_handler)
         
         self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
         self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
@@ -92,7 +95,15 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.b_spinbox.valueChanged.connect(self.color_change_handler)
         self.w_slider.valueChanged.connect(self.color_change_handler)
         self.w_spinbox.valueChanged.connect(self.color_change_handler)
+
+        self.color_bank_select_box.currentIndexChanged.connect(self.load_color_bank)
+        self.main_radioButton.clicked.connect(self.selected_effect_changed)
+        self.clash_radioButton.clicked.connect(self.selected_effect_changed)
+        self.swing_radioButton.clicked.connect(self.selected_effect_changed)
         
+        self.reset_changes_button.clicked.connect(self.reload_config_action_handler)
+        self.color_save_button.clicked.connect(self.color_save_button_handler)
+        self.preview_button.clicked.connect(self.preview_button_handler)
         self.erase_button.clicked.connect(self.erase_button_handler)
         self.upload_button.clicked.connect(self.upload_button_handler)
 
@@ -179,38 +190,82 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         if not self.sc:
             port = self.saber_select_box.currentText()
             self.sc = Saber_Controller(port, gui=True)
-        self.reload_saber_configuration()
-        self.display_connection_status(SCStatus.CONNECTED)
-        self.log.info(f'Connected to saber.\nSerial Number: {self.saber_info["serial"]}\nFirmware version: {self.saber_info["version"]}')
-
-    def reload_saber_configuration(self):
-        '''Reload the files list and configuration files from the saber.'''
-        # display a "loading" dialog. Probably this will happen fast enough that most people won't even see it.
+        
+        # create a "loading" box while connecting
         w = QDialog(parent=self)
         w.setModal(True)
         w.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint)
         w.layout = QVBoxLayout()
-        w.layout.addWidget(QLabel("Reading configuration from saber."))
+        w.layout.addWidget(QLabel("Connecting to saber."))
         bar = QProgressBar()
         bar.setMaximum(0)
         w.layout.addWidget(bar)
         w.setLayout(w.layout)
+        def _fin(event): # things to do once connection is complete
+            self.display_connection_status(SCStatus.CONNECTED)
+            self.log.info(f'Connected to saber.\nSerial Number: {self.saber_info["serial"]}\nFirmware version: {self.saber_info["version"]}')
+        w.closeEvent = _fin
         w.show()
 
-        self.saber_config = eval(self.sc.read_config_ini())
+        AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+
+    async def reload_saber_configuration(self, w: QDialog = None):
+        '''Reload the files list and configuration files from the saber.'''
+        # display a "loading" dialog. One can be passed in, otherwise create one.
+        if not w:
+            w = QDialog(parent=self)
+            w.setModal(True)
+            w.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint)
+            w.layout = QVBoxLayout()
+            w.layout.addWidget(QLabel("Reading configuration from saber."))
+            bar = QProgressBar()
+            bar.setMaximum(0)
+            w.layout.addWidget(bar)
+            w.setLayout(w.layout)
+            w.show()
+
+        self.saber_config = eval(await sync_to_async(self.sc.read_config_ini)())
+        self.current_config = self.saber_config
         self.log.debug(f'Retrieved config.ini:\n{self.saber_config}')
-        self.files_dict = self.sc.list_files_on_saber()
+        self.files_dict = await sync_to_async(self.sc.list_files_on_saber)()
         self.log.debug(f'Retrieved files from saber:\n{self.files_dict}')
-        self.saber_info = self.sc.get_saber_info()
+        self.saber_info = await sync_to_async(self.sc.get_saber_info)()
         self.log.debug(f'Retrieved saber info: {self.saber_info}')
         self.log.info('Successfully retrieved configuration from saber.')
 
+        self.update_ui_with_config()
+
         w.close()
+
+    def update_ui_with_config(self):
+        '''Populates UI elements with the config data loaded from the saber.'''
+        # Populate the list of color banks
+        self.color_bank_select_box.clear()
+        for i, x in enumerate(self.current_config['bank']):
+            # create an icon that's just a box filled with the main blade color
+            pixmap = QPixmap(self.color_bank_select_box.iconSize())
+            pixmap.fill(QColor(*Color.get_mixed_color(*x['color'].values())))
+            self.color_bank_select_box.addItem(QIcon(pixmap), f'Bank #{i+1}')
+        activeBank = self.current_config['activeBank']
+        self.color_bank_select_box.setCurrentIndex(activeBank)
+        self.set_color_inputs_to_color(self.current_config['bank'][activeBank][self.get_selected_effect()])
 
     def disconnect_saber(self):
         '''Disconnect saber and perform any necessary cleanup'''
         self.sc = None
         self.display_connection_status(SCStatus.DISCONNECTED)
+
+    def reload_config_action_handler(self):
+        button = QMessageBox.warning(
+            self,
+            "Reload Configuration?",
+            "WARNING! This will reset any unsaved configuration changes.\n\nDo you want to continue?",
+            buttons=QMessageBox.Yes | QMessageBox.No,
+            defaultButton=QMessageBox.No
+        )
+
+        if button == QMessageBox.Yes:
+            AsyncioPySide6.runTask(self.reload_saber_configuration())
 
     # ------------------------- #
     # Logging and debug methods #
@@ -349,6 +404,56 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     # Color handling methods #
     # ---------------------- #
     
+    def load_color_bank(self, index: int):
+        '''Load color info from specified color bank index into GUI'''
+        bank = self.current_config['bank'][index]
+        for effect, color in bank.items():
+            self.display_color_preview(effect, color)
+        self.current_config['activeBank'] = index
+        self.set_color_inputs_to_color(self.current_config['bank'][index][self.get_selected_effect()])
+    
+    def set_color_inputs_to_color(self, color: dict):
+        self.r_spinbox.setValue(color["red"])
+        self.g_spinbox.setValue(color["green"])
+        self.b_spinbox.setValue(color["blue"])
+        self.w_spinbox.setValue(color["white"])
+    
+    def display_color_preview(self, effect: str, color: dict):
+        box = self._get_box_for_effect(effect)
+        p = box.palette()
+        p.setColor(box.backgroundRole(), QColor(*Color.get_mixed_color(*color.values())))
+        box.setPalette(p)
+
+    def get_selected_effect(self) -> str:
+        '''Returns a string corresponding to which effect radio box is selected.
+        Possible return values are "color", "clash", and "swing".'''
+        if self.main_radioButton.isChecked():
+            return "color"
+        elif self.clash_radioButton.isChecked():
+            return "clash"
+        elif self.swing_radioButton.isChecked():
+            return "swing"
+        return "" # This shouldn't ever happen
+    
+    def selected_effect_changed(self):
+        '''Sets the sliders to the proper values when user switches the active effect.'''
+        # Yeah, I could do this as one line, but this is easier to read
+        effect = self.get_selected_effect()
+        bank = self.color_bank_select_box.currentIndex()
+        color = self.current_config['bank'][bank][effect]
+        self.set_color_inputs_to_color(color)
+
+    def _get_box_for_effect(self, effect: str) -> QLabel:
+        match effect:
+            case "color":
+                return self.main_color_label
+            case "clash":
+                return self.clash_color_label
+            case "swing":
+                return self.swing_color_label
+            case _:
+                return
+
     def color_change_handler(self, value: int):
         '''Handle value changed in the color specifier'''
         match self.sender():
@@ -365,24 +470,57 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                self.w_slider.setValue(value)
                self.w_spinbox.setValue(value)
         
+        self.update_current_config_from_gui()
         self.update_color_display()
 
     def update_color_display(self):
-        '''Update the color preview displays based on the color specified in the GUI state'''
-        if self.main_radioButton.isChecked():
-            box = self.main_color_label
-        elif self.clash_radioButton.isChecked():
-            box = self.clash_color_label
-        elif self.swing_radioButton.isChecked():
-            box = self.swing_color_label
-        
-        p = box.palette()
-        p.setColor(box.backgroundRole(), QColor(*color.get_mixed_color(self.r_spinbox.value(), self.g_spinbox.value(), self.b_spinbox.value(), self.w_spinbox.value())))
-        box.setPalette(p)
+        '''Update the color preview display based on the color specified in the GUI state'''
+        effect = self.get_selected_effect()
+        color = self.get_current_color()
+        self.display_color_preview(effect, color)
+
+    def get_current_color(self) -> dict:
+        '''Returns a color dict with the current valuse set in the GUI'''
+        return {
+            "red": self.r_spinbox.value(),
+            "green": self.g_spinbox.value(),
+            "blue": self.b_spinbox.value(),
+            "white": self.w_spinbox.value()
+        }
+    
+    def preview_color_on_saber(self, color: dict):
+        '''Send the specified color to the saber for preview.'''
+        self.sc.preview_color(*color.values())
+
+    def preview_button_handler(self):
+        self.preview_color_on_saber(self.get_current_color())
+
+    def update_current_config_from_gui(self):
+        '''Updates the stored configuration when the GUI elements are changed.'''
+        self.current_config['activeBank'] = self.color_bank_select_box.currentIndex() +1
+        color = self.get_current_color()
+        self.current_config['bank'][self.color_bank_select_box.currentIndex()][self.get_selected_effect()] = color
+
+    def color_save_button_handler(self):
+        '''Write the values of the currently displayed bank to the saber.'''
+        i = self.color_bank_select_box.currentIndex()
+        m_color = self.current_config['bank'][i]['color']
+        cl_color = self.current_config['bank'][i]['clash']
+        s_color = self.current_config['bank'][i]['swing']
+        AsyncioPySide6.runTask(self._set_colors(i, m_color, cl_color, s_color))
+        AsyncioPySide6.runTask(self.reload_saber_configuration())
+    
+    async def _set_colors(self, bank: int, m_color: dict, cl_color: dict, s_color:dict):
+        await self.sc.set_color(bank, "color", m_color['red'], m_color['green'], m_color['blue'], m_color['white'])
+        await self.sc.set_color(bank, "clash", cl_color['red'], cl_color['green'], cl_color['blue'], cl_color['white'])
+        await self.sc.set_color(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white'])
+        self.sc.set_active_bank(bank)
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    with AsyncioPySide6.use_asyncio():
+        mainwindow = Main_Window()
 
-    mainwindow = Main_Window()
-
-    app.exec()
+        app.exec()

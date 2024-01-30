@@ -199,29 +199,29 @@ class Ui_MainWindow(object):
         self.controls_groupbox.setObjectName(u"controls_groupbox")
         self.verticalLayout = QVBoxLayout(self.controls_groupbox)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.comboBox = QComboBox(self.controls_groupbox)
-        self.comboBox.setObjectName(u"comboBox")
+        self.color_bank_select_box = QComboBox(self.controls_groupbox)
+        self.color_bank_select_box.setObjectName(u"color_bank_select_box")
 
-        self.verticalLayout.addWidget(self.comboBox)
+        self.verticalLayout.addWidget(self.color_bank_select_box)
 
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.verticalLayout.addItem(self.verticalSpacer)
 
-        self.color_reset_button = QPushButton(self.controls_groupbox)
-        self.color_reset_button.setObjectName(u"color_reset_button")
+        self.reset_changes_button = QPushButton(self.controls_groupbox)
+        self.reset_changes_button.setObjectName(u"reset_changes_button")
 
-        self.verticalLayout.addWidget(self.color_reset_button)
+        self.verticalLayout.addWidget(self.reset_changes_button)
 
         self.color_save_button = QPushButton(self.controls_groupbox)
         self.color_save_button.setObjectName(u"color_save_button")
 
         self.verticalLayout.addWidget(self.color_save_button)
 
-        self.pushButton = QPushButton(self.controls_groupbox)
-        self.pushButton.setObjectName(u"pushButton")
+        self.preview_button = QPushButton(self.controls_groupbox)
+        self.preview_button.setObjectName(u"preview_button")
 
-        self.verticalLayout.addWidget(self.pushButton)
+        self.verticalLayout.addWidget(self.preview_button)
 
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
@@ -365,10 +365,10 @@ class Ui_MainWindow(object):
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Green", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Red", None))
         self.controls_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Controls", None))
-        self.comboBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Color Bank", None))
-        self.color_reset_button.setText(QCoreApplication.translate("MainWindow", u"Reset Changes", None))
+        self.color_bank_select_box.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Color Bank", None))
+        self.reset_changes_button.setText(QCoreApplication.translate("MainWindow", u"Reset Changes", None))
         self.color_save_button.setText(QCoreApplication.translate("MainWindow", u"Save Bank to Saber", None))
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Preview Color on Saber", None))
+        self.preview_button.setText(QCoreApplication.translate("MainWindow", u"Preview Color on Saber", None))
         self.effect_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Effect Select", None))
         self.main_radioButton.setText(QCoreApplication.translate("MainWindow", u"Main", None))
         self.clash_radioButton.setText(QCoreApplication.translate("MainWindow", u"Clash", None))
