@@ -192,15 +192,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.sc = Saber_Controller(port, gui=True)
         
         # create a "loading" box while connecting
-        w = QDialog(parent=self)
-        w.setModal(True)
-        w.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint)
-        w.layout = QVBoxLayout()
-        w.layout.addWidget(QLabel("Connecting to saber."))
-        bar = QProgressBar()
-        bar.setMaximum(0)
-        w.layout.addWidget(bar)
-        w.setLayout(w.layout)
+        w = Loading_Box(self, "Connecting to saber.")
         def _fin(event): # things to do once connection is complete
             self.display_connection_status(SCStatus.CONNECTED)
             self.log.info(f'Connected to saber.\nSerial Number: {self.saber_info["serial"]}\nFirmware version: {self.saber_info["version"]}')
@@ -213,15 +205,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         '''Reload the files list and configuration files from the saber.'''
         # display a "loading" dialog. One can be passed in, otherwise create one.
         if not w:
-            w = QDialog(parent=self)
-            w.setModal(True)
-            w.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint)
-            w.layout = QVBoxLayout()
-            w.layout.addWidget(QLabel("Reading configuration from saber."))
-            bar = QProgressBar()
-            bar.setMaximum(0)
-            w.layout.addWidget(bar)
-            w.setLayout(w.layout)
+            w = Loading_Box(self, "Reading configuration from saber.")
             w.show()
 
         self.saber_config = eval(await sync_to_async(self.sc.read_config_ini)())
@@ -490,9 +474,11 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     
     def preview_color_on_saber(self, color: dict):
         '''Send the specified color to the saber for preview.'''
+        self.log.debug(f'Previewing color: {color}')
         self.sc.preview_color(*color.values())
 
     def preview_button_handler(self):
+        self.log.info('Previewing color on saber.')
         self.preview_color_on_saber(self.get_current_color())
 
     def update_current_config_from_gui(self):
@@ -503,18 +489,24 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def color_save_button_handler(self):
         '''Write the values of the currently displayed bank to the saber.'''
+        w = Loading_Box(self, "Saving configuration to saber.")
+        w.show()
+
         i = self.color_bank_select_box.currentIndex()
+        self.log.info(f'Saving color bank #{i+1} to saber.')
         m_color = self.current_config['bank'][i]['color']
         cl_color = self.current_config['bank'][i]['clash']
         s_color = self.current_config['bank'][i]['swing']
+        self.log.debug(f'Main color: {m_color}\nClash color: {cl_color}\nSwing color: {s_color}')
+
         AsyncioPySide6.runTask(self._set_colors(i, m_color, cl_color, s_color))
-        AsyncioPySide6.runTask(self.reload_saber_configuration())
+        AsyncioPySide6.runTask(self.reload_saber_configuration(w))
     
     async def _set_colors(self, bank: int, m_color: dict, cl_color: dict, s_color:dict):
         await self.sc.set_color(bank, "color", m_color['red'], m_color['green'], m_color['blue'], m_color['white'])
         await self.sc.set_color(bank, "clash", cl_color['red'], cl_color['green'], cl_color['blue'], cl_color['white'])
         await self.sc.set_color(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white'])
-        self.sc.set_active_bank(bank)
+        await self.sc.set_active_bank(bank)
 
 
 

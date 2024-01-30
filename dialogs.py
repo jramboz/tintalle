@@ -1,3 +1,5 @@
+from typing import Optional
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLabel, QProgressBar, QPlainTextEdit, QWidget, QMessageBox
 import PySide6.QtCore as QtCore
 import logging
@@ -119,6 +121,19 @@ class File_Upload_Progress_Dialog(QDialog):
         self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
         self.fileNameLabel.setText('Upload complete!')
         logging.getLogger().info('Upload complete!')
+
+class Loading_Box(QDialog):
+    '''Displays an animated "loading" box for actions without specific completion measures.'''
+    def __init__(self, parent: QWidget = None, message: str = "Loading...") -> None:
+        super().__init__(parent)
+        self.setModal(True)
+        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint)
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(QLabel(message))
+        bar = QProgressBar()
+        bar.setMaximum(0)
+        self.layout.addWidget(bar)
+        self.setLayout(self.layout)
 
 def error_handler(error, info = None, parent: QWidget = None) -> None:
     '''Display an error message to the user and log to the log file.'''
