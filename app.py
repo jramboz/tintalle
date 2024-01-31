@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QVBoxLayout, QLabel, QProgressBar, QFileDialog
-from PySide6.QtGui import QColor, QPixmap, QIcon
+from PySide6.QtGui import QColor, QPixmap, QIcon, QPalette
 import PySide6.QtCore as QtCore
 from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException
@@ -159,16 +159,20 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.saber_select_box.setEnabled(False)
 
     def set_ui_enabled(self, connected: bool = True) -> None:
-       '''Enable or disable UI elements dependent on having a saber connected.''' 
-       if connected:
-           self.content_tabWidget.setEnabled(True)
-           self.action_Reload_Config.setEnabled(True)
-           self.saber_select_box.setEnabled(False)
-       else: # disconnected
-           self.content_tabWidget.setEnabled(False)
-           self.action_Reload_Config.setEnabled(False)
-           self.saber_select_box.setEnabled(True)
-           
+        '''Enable or disable UI elements dependent on having a saber connected.''' 
+        if connected:
+            self.content_tabWidget.setEnabled(True)
+            self.action_Reload_Config.setEnabled(True)
+            self.saber_select_box.setEnabled(False)
+        else: # disconnected
+            # clear the contents
+            self.clear_color_ui()
+
+            # disable tabs and  enable saber select
+            self.content_tabWidget.setEnabled(False)
+            self.action_Reload_Config.setEnabled(False)
+            self.saber_select_box.setEnabled(True)
+
     def error_handler(self, e):
         '''Generic error handler.'''
         self.log.error('An error has occurred.')
@@ -224,7 +228,6 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def update_ui_with_config(self):
         '''Populates UI elements with the config data loaded from the saber.'''
         # Populate the list of color banks
-        self.color_bank_select_box.clear()
         for i, x in enumerate(self.current_config['bank']):
             # create an icon that's just a box filled with the main blade color
             pixmap = QPixmap(self.color_bank_select_box.iconSize())
@@ -249,6 +252,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         )
 
         if button == QMessageBox.Yes:
+            self.clear_color_ui()
             AsyncioPySide6.runTask(self.reload_saber_configuration())
 
     # ------------------------- #
@@ -408,6 +412,19 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         p.setColor(box.backgroundRole(), QColor(*Color.get_mixed_color(*color.values())))
         box.setPalette(p)
 
+    def clear_color_ui(self):
+        '''Clear and reset all color UI settings.'''
+        self.color_bank_select_box.clear()
+        self.r_spinbox.setValue(0)
+        self.g_spinbox.setValue(0)
+        self.b_spinbox.setValue(0)
+        self.w_spinbox.setValue(0)
+        self.main_radioButton.setChecked(True)
+        p = QApplication.palette()
+        self.main_color_label.setPalette(p)
+        self.clash_color_label.setPalette(p)
+        self.swing_color_label.setPalette(p)
+
     def get_selected_effect(self) -> str:
         '''Returns a string corresponding to which effect radio box is selected.
         Possible return values are "color", "clash", and "swing".'''
@@ -442,17 +459,17 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         '''Handle value changed in the color specifier'''
         match self.sender():
             case self.r_slider | self.r_spinbox:
-               self.r_slider.setValue(value)
-               self.r_spinbox.setValue(value)
+                self.r_slider.setValue(value)
+                self.r_spinbox.setValue(value)
             case self.g_slider | self.g_spinbox:
-               self.g_slider.setValue(value)
-               self.g_spinbox.setValue(value)
+                self.g_slider.setValue(value)
+                self.g_spinbox.setValue(value)
             case self.b_slider | self.b_spinbox:
-               self.b_slider.setValue(value)
-               self.b_spinbox.setValue(value)
+                self.b_slider.setValue(value)
+                self.b_spinbox.setValue(value)
             case self.w_slider | self.w_spinbox:
-               self.w_slider.setValue(value)
-               self.w_spinbox.setValue(value)
+                self.w_slider.setValue(value)
+                self.w_spinbox.setValue(value)
         
         self.update_current_config_from_gui()
         self.update_color_display()
