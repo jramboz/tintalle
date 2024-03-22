@@ -341,7 +341,22 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     # Firmware handling methods #
     # ------------------------- #
 
+    def anima_is_NXT(self):
+        if self.saber_info['version'][:4] == 'NXT_':
+            return True
+        return False
+    
+    def display_NXT_warning(self):
+        self.log.info('Your saber appears to be an Anima NXT. Tintallë does not support firmware uploads for Anima NXT at this time.')
+        dlg = QMessageBox(QMessageBox.Information, 'Information', 'Anima NXT Detected', QMessageBox.Ok, self)
+        dlg.setInformativeText('Your saber appears to be an Anima NXT. Tintallë does not support firmware uploads for Anima NXT at this time.')
+        dlg.exec()
+
     def fw_check_handler(self):
+        if self.anima_is_NXT():
+            self.display_NXT_warning()
+            return
+
         self.log.info('Checking for latest OpenCore firwmare.')
         fw_info = firmware.check_latest_fw_release()
         self.log.debug(f'Firmware info retrieved: {fw_info}')
@@ -381,6 +396,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 firmware.prompt_for_location_and_download_fw(self, url=fw_info[1])
 
     def install_firmware_from_file_handler(self):
+        if self.anima_is_NXT():
+            self.display_NXT_warning()
+            return
+        
         fw_file = QFileDialog.getOpenFileName(self, caption='Open Firmware File', filter='OpenCore Firwmare File (*.hex)')[0]
         if fw_file:
             try:

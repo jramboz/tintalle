@@ -10,18 +10,18 @@ from dialogs import *
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QFileDialog, QMessageBox
 
 # TODO: read this from a config file, and allow the user to set it in options somewhere.
-FIRMWARE_RELEASE_URL = 'https://api.github.com/repos/LamaDiLuce/polaris-opencore/releases/latest'
+EVO_FIRMWARE_RELEASE_URL = 'https://api.github.com/repos/LamaDiLuce/polaris-opencore/releases/latest'
 
 def check_latest_fw_release(parent: QWidget = None) -> Tuple[str, str]:
     '''Checks for the latest Polaris OpenCore firmware release.
     Returns a tuple with the version number and download url as strings.'''
     try:
-        response = requests.get(FIRMWARE_RELEASE_URL)
+        response = requests.get(EVO_FIRMWARE_RELEASE_URL)
         if response.status_code == 200:
             data = response.json()
             return (data['tag_name'], data['assets'][0]['browser_download_url'])
         else:
-            error_handler('An error occurred while checking for the latest firmware.', 'Try manually downloading the latest release from: ' + FIRMWARE_RELEASE_URL, parent)
+            error_handler('An error occurred while checking for the latest firmware.', 'Try manually downloading the latest release from: ' + EVO_FIRMWARE_RELEASE_URL, parent)
             return None
     except:
         error_handler('Unable to retrieve latest version.', 'Check your internet connection and try again.', parent)
