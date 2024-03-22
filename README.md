@@ -18,6 +18,10 @@ This is not guaranteed to be bug-free. In fact, it's practically guaranteed to h
 ## Requirements
 - Pyside6
 - py2saber
+- requests
+- wget
+- asgiref
+- AsyncioPySide6
 
 Use `pip install -r requirements.txt` to automatically install requirements.
 
