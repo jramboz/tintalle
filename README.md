@@ -17,7 +17,9 @@ This is not guaranteed to be bug-free. In fact, it's practically guaranteed to h
 
 ## Requirements
 - Pyside6
-- [py2saber](https://github.com/jramboz/py2saber) source - clone the Git repo or download `py2saber.py` into the `elentari` directory.
+- py2saber
+
+Use `pip install -r requirements.txt` to automatically install requirements.
 
 ## Why Tintallë?
 Because the original software that inspired it is Gilthoniel.
