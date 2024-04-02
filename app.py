@@ -101,9 +101,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.clash_radioButton.clicked.connect(self.selected_effect_changed)
         self.swing_radioButton.clicked.connect(self.selected_effect_changed)
         
-        self.reset_changes_button.clicked.connect(self.reload_config_action_handler)
+        self.reset_color_changes_button.clicked.connect(self.reload_config_action_handler)
         self.color_save_button.clicked.connect(self.color_save_button_handler)
-        self.preview_button.clicked.connect(self.preview_button_handler)
+        self.preview_color_button.clicked.connect(self.preview_button_handler)
         self.erase_button.clicked.connect(self.erase_button_handler)
         self.upload_button.clicked.connect(self.upload_button_handler)
 
@@ -173,7 +173,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.action_Reload_Config.setEnabled(False)
             self.saber_select_box.setEnabled(True)
 
-    def error_handler(self, e):
+    def error_handler(self, e): #TODO: replace with error handler from dialogs.py
         '''Generic error handler.'''
         self.log.error('An error has occurred.')
         self.log.error(e)
@@ -193,7 +193,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.display_connection_status(SCStatus.CONNECTING)
         if not self.sc:
             port = self.saber_select_box.currentText()
-            self.sc = Saber_Controller(port, gui=True)
+            self.sc = Saber_Controller(port, gui=True, loglevel=self.log.getEffectiveLevel())
+            self.sc.log.addHandler(self.logTextBox)
         
         # create a "loading" box while connecting
         w = Loading_Box(self, "Connecting to saber.")

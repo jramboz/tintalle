@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.2
+## Created by: Qt User Interface Compiler version 6.6.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -16,11 +16,12 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QGridLayout, QGroupBox,
-    QHBoxLayout, QLabel, QLayout, QMainWindow,
-    QMenu, QMenuBar, QPushButton, QRadioButton,
-    QSizePolicy, QSlider, QSpacerItem, QSpinBox,
-    QStatusBar, QTabWidget, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QGridLayout,
+    QGroupBox, QHBoxLayout, QLabel, QLayout,
+    QListWidget, QListWidgetItem, QMainWindow, QMenu,
+    QMenuBar, QPushButton, QRadioButton, QSizePolicy,
+    QSlider, QSpacerItem, QSpinBox, QStatusBar,
+    QTabWidget, QVBoxLayout, QWidget)
 
 from qtexteditlogger import QTextEditLogger
 
@@ -28,7 +29,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(859, 616)
+        MainWindow.resize(897, 697)
         self.action_Refresh_Ports = QAction(MainWindow)
         self.action_Refresh_Ports.setObjectName(u"action_Refresh_Ports")
         self.action_Refresh_Ports.setShortcutVisibleInContextMenu(True)
@@ -54,7 +55,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.connection_groupBox = QGroupBox(self.centralwidget)
         self.connection_groupBox.setObjectName(u"connection_groupBox")
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.connection_groupBox.sizePolicy().hasHeightForWidth())
@@ -73,7 +74,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.saber_select_box)
 
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
@@ -87,7 +88,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.status_label)
 
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_2)
 
@@ -204,26 +205,26 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.color_bank_select_box)
 
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout.addItem(self.verticalSpacer)
 
-        self.reset_changes_button = QPushButton(self.controls_groupbox)
-        self.reset_changes_button.setObjectName(u"reset_changes_button")
+        self.reset_color_changes_button = QPushButton(self.controls_groupbox)
+        self.reset_color_changes_button.setObjectName(u"reset_color_changes_button")
 
-        self.verticalLayout.addWidget(self.reset_changes_button)
+        self.verticalLayout.addWidget(self.reset_color_changes_button)
 
         self.color_save_button = QPushButton(self.controls_groupbox)
         self.color_save_button.setObjectName(u"color_save_button")
 
         self.verticalLayout.addWidget(self.color_save_button)
 
-        self.preview_button = QPushButton(self.controls_groupbox)
-        self.preview_button.setObjectName(u"preview_button")
+        self.preview_color_button = QPushButton(self.controls_groupbox)
+        self.preview_color_button.setObjectName(u"preview_color_button")
 
-        self.verticalLayout.addWidget(self.preview_button)
+        self.verticalLayout.addWidget(self.preview_color_button)
 
-        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout.addItem(self.verticalSpacer_2)
 
@@ -278,12 +279,128 @@ class Ui_MainWindow(object):
         self.content_tabWidget.addTab(self.color_tab, "")
         self.sound_tab = QWidget()
         self.sound_tab.setObjectName(u"sound_tab")
-        self.erase_button = QPushButton(self.sound_tab)
+        self.gridLayout_4 = QGridLayout(self.sound_tab)
+        self.gridLayout_4.setObjectName(u"gridLayout_4")
+        self.files_listWidget = QListWidget(self.sound_tab)
+        self.files_listWidget.setObjectName(u"files_listWidget")
+
+        self.gridLayout_4.addWidget(self.files_listWidget, 0, 0, 3, 1)
+
+        self.effects_groupbox = QGroupBox(self.sound_tab)
+        self.effects_groupbox.setObjectName(u"effects_groupbox")
+        self.verticalLayout_4 = QVBoxLayout(self.effects_groupbox)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.poweron_checkBox = QCheckBox(self.effects_groupbox)
+        self.poweron_checkBox.setObjectName(u"poweron_checkBox")
+
+        self.verticalLayout_4.addWidget(self.poweron_checkBox)
+
+        self.poweroff_checkBox = QCheckBox(self.effects_groupbox)
+        self.poweroff_checkBox.setObjectName(u"poweroff_checkBox")
+
+        self.verticalLayout_4.addWidget(self.poweroff_checkBox)
+
+        self.hum_checkBox = QCheckBox(self.effects_groupbox)
+        self.hum_checkBox.setObjectName(u"hum_checkBox")
+
+        self.verticalLayout_4.addWidget(self.hum_checkBox)
+
+        self.clash_checkBox = QCheckBox(self.effects_groupbox)
+        self.clash_checkBox.setObjectName(u"clash_checkBox")
+
+        self.verticalLayout_4.addWidget(self.clash_checkBox)
+
+        self.swing_checkBox = QCheckBox(self.effects_groupbox)
+        self.swing_checkBox.setObjectName(u"swing_checkBox")
+
+        self.verticalLayout_4.addWidget(self.swing_checkBox)
+
+        self.smoothswingA_checkBox = QCheckBox(self.effects_groupbox)
+        self.smoothswingA_checkBox.setObjectName(u"smoothswingA_checkBox")
+
+        self.verticalLayout_4.addWidget(self.smoothswingA_checkBox)
+
+        self.smoothswingB_checkBox = QCheckBox(self.effects_groupbox)
+        self.smoothswingB_checkBox.setObjectName(u"smoothswingB_checkBox")
+
+        self.verticalLayout_4.addWidget(self.smoothswingB_checkBox)
+
+        self.beep_checkBox = QCheckBox(self.effects_groupbox)
+        self.beep_checkBox.setObjectName(u"beep_checkBox")
+
+        self.verticalLayout_4.addWidget(self.beep_checkBox)
+
+
+        self.gridLayout_4.addWidget(self.effects_groupbox, 0, 1, 1, 1)
+
+        self.files_groupbox = QGroupBox(self.sound_tab)
+        self.files_groupbox.setObjectName(u"files_groupbox")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.files_groupbox.sizePolicy().hasHeightForWidth())
+        self.files_groupbox.setSizePolicy(sizePolicy1)
+        self.verticalLayout_3 = QVBoxLayout(self.files_groupbox)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.reset_sound_changes_button = QPushButton(self.files_groupbox)
+        self.reset_sound_changes_button.setObjectName(u"reset_sound_changes_button")
+
+        self.verticalLayout_3.addWidget(self.reset_sound_changes_button)
+
+        self.sound_save_button = QPushButton(self.files_groupbox)
+        self.sound_save_button.setObjectName(u"sound_save_button")
+
+        self.verticalLayout_3.addWidget(self.sound_save_button)
+
+        self.verticalSpacer_3 = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout_3.addItem(self.verticalSpacer_3)
+
+        self.erase_button = QPushButton(self.files_groupbox)
         self.erase_button.setObjectName(u"erase_button")
-        self.erase_button.setGeometry(QRect(210, 10, 100, 32))
-        self.upload_button = QPushButton(self.sound_tab)
+
+        self.verticalLayout_3.addWidget(self.erase_button)
+
+        self.upload_button = QPushButton(self.files_groupbox)
         self.upload_button.setObjectName(u"upload_button")
-        self.upload_button.setGeometry(QRect(210, 140, 100, 32))
+
+        self.verticalLayout_3.addWidget(self.upload_button)
+
+
+        self.gridLayout_4.addWidget(self.files_groupbox, 2, 1, 1, 1)
+
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.freespace_label = QLabel(self.sound_tab)
+        self.freespace_label.setObjectName(u"freespace_label")
+
+        self.horizontalLayout_3.addWidget(self.freespace_label)
+
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_3)
+
+        self.usedspace_label = QLabel(self.sound_tab)
+        self.usedspace_label.setObjectName(u"usedspace_label")
+
+        self.horizontalLayout_3.addWidget(self.usedspace_label)
+
+        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_4)
+
+        self.totalspace_label = QLabel(self.sound_tab)
+        self.totalspace_label.setObjectName(u"totalspace_label")
+
+        self.horizontalLayout_3.addWidget(self.totalspace_label)
+
+
+        self.gridLayout_4.addLayout(self.horizontalLayout_3, 3, 0, 1, 2)
+
+        self.verticalSpacer_4 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.gridLayout_4.addItem(self.verticalSpacer_4, 1, 1, 1, 1)
+
         self.content_tabWidget.addTab(self.sound_tab, "")
 
         self.verticalLayout_2.addWidget(self.content_tabWidget)
@@ -294,11 +411,11 @@ class Ui_MainWindow(object):
         self.logTextBox = QTextEditLogger(self.centralwidget)
         self.logTextBox.setObjectName(u"logTextBox")
         self.logTextBox.setEnabled(True)
-        sizePolicy1 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Expanding)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.logTextBox.sizePolicy().hasHeightForWidth())
-        self.logTextBox.setSizePolicy(sizePolicy1)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Expanding)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.logTextBox.sizePolicy().hasHeightForWidth())
+        self.logTextBox.setSizePolicy(sizePolicy2)
         self.logTextBox.setMaximumSize(QSize(500, 16777215))
         self.logTextBox.setReadOnly(True)
 
@@ -307,7 +424,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 859, 24))
+        self.menubar.setGeometry(QRect(0, 0, 897, 42))
         self.menuConnection = QMenu(self.menubar)
         self.menuConnection.setObjectName(u"menuConnection")
         self.menuTroubleshooting = QMenu(self.menubar)
@@ -366,9 +483,9 @@ class Ui_MainWindow(object):
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Red", None))
         self.controls_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Controls", None))
         self.color_bank_select_box.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Color Bank", None))
-        self.reset_changes_button.setText(QCoreApplication.translate("MainWindow", u"Reset Changes", None))
+        self.reset_color_changes_button.setText(QCoreApplication.translate("MainWindow", u"Reset Changes", None))
         self.color_save_button.setText(QCoreApplication.translate("MainWindow", u"Save Bank to Saber", None))
-        self.preview_button.setText(QCoreApplication.translate("MainWindow", u"Preview Color on Saber", None))
+        self.preview_color_button.setText(QCoreApplication.translate("MainWindow", u"Preview Color on Saber", None))
         self.effect_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Effect Select", None))
         self.main_radioButton.setText(QCoreApplication.translate("MainWindow", u"Main", None))
         self.clash_radioButton.setText(QCoreApplication.translate("MainWindow", u"Clash", None))
@@ -377,8 +494,23 @@ class Ui_MainWindow(object):
         self.clash_color_label.setText("")
         self.swing_color_label.setText("")
         self.content_tabWidget.setTabText(self.content_tabWidget.indexOf(self.color_tab), QCoreApplication.translate("MainWindow", u"Color", None))
+        self.effects_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Effects", None))
+        self.poweron_checkBox.setText(QCoreApplication.translate("MainWindow", u"Power On", None))
+        self.poweroff_checkBox.setText(QCoreApplication.translate("MainWindow", u"Power Off", None))
+        self.hum_checkBox.setText(QCoreApplication.translate("MainWindow", u"Hum", None))
+        self.clash_checkBox.setText(QCoreApplication.translate("MainWindow", u"Clash", None))
+        self.swing_checkBox.setText(QCoreApplication.translate("MainWindow", u"Swing", None))
+        self.smoothswingA_checkBox.setText(QCoreApplication.translate("MainWindow", u"SmoothSwing A", None))
+        self.smoothswingB_checkBox.setText(QCoreApplication.translate("MainWindow", u"SmoothSwing B", None))
+        self.beep_checkBox.setText(QCoreApplication.translate("MainWindow", u"Beep", None))
+        self.files_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Files", None))
+        self.reset_sound_changes_button.setText(QCoreApplication.translate("MainWindow", u"Reset Changes", None))
+        self.sound_save_button.setText(QCoreApplication.translate("MainWindow", u"Save Changes", None))
         self.erase_button.setText(QCoreApplication.translate("MainWindow", u"Erase Sounds", None))
         self.upload_button.setText(QCoreApplication.translate("MainWindow", u"Upload Files", None))
+        self.freespace_label.setText(QCoreApplication.translate("MainWindow", u"Free Space: --- MB", None))
+        self.usedspace_label.setText(QCoreApplication.translate("MainWindow", u"Used Space: --- MB", None))
+        self.totalspace_label.setText(QCoreApplication.translate("MainWindow", u"Total Space: --- MB", None))
         self.content_tabWidget.setTabText(self.content_tabWidget.indexOf(self.sound_tab), QCoreApplication.translate("MainWindow", u"Sound", None))
         self.logTextBox.setPlaceholderText("")
         self.menuConnection.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
