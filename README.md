@@ -22,6 +22,7 @@ This is not guaranteed to be bug-free. In fact, it's practically guaranteed to h
 - wget
 - asgiref
 - AsyncioPySide6
+- pydub
 
 Use `pip install -r requirements.txt` to automatically install requirements.
 

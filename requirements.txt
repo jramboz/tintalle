@@ -4,3 +4,4 @@ requests
 wget
 asgiref
 AsyncioPySide6
+pydub
