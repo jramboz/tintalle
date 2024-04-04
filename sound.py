@@ -93,7 +93,7 @@ _patterns = {
     ),
     'poweroff': _Effect_RE(
         searches=[
-            r'^poweroff(\d*)\.wav', # CFX
+            r'^po*we*roff(\d*)\.wav', # CFX
             r'^in0*(\d*)\.wav', # Proffie
             r'^off(\d*)\.wav', # Verso
             r'^in \((\d*)\)\.wav' # Xenopixel
