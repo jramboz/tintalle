@@ -30,23 +30,29 @@ def convert_wav_to_polaris_raw(input: str, output: str = None) -> str | None:
         sound = sound.set_sample_width(_BIT_DEPTH)
 
         # get output path and filename
+        # if no output is specified, use '{basename}.RAW' in the same directory
         if not output:
-            # if no output is specified, use '{basename}.RAW' in the same directory
-            path = os.path.dirname(os.path.realpath(input))
-            output = os.path.join(path, os.path.splitext(os.path.basename(input))[0] + '.RAW')
+            dir = os.path.dirname(os.path.realpath(input))
+            output = os.path.join(dir, os.path.splitext(os.path.basename(input))[0] + '.RAW')
+
+        # if output didn't include a directory, default to the same directory as the input
         if not os.path.dirname(output):
-            # if output didn't include a path, default to the same path as the input
-            path = os.path.dirname(os.path.realpath(input))
-            output = os.path.join(path, output)
-        if os.path.isdir(output) or output.endswith(os.path.sep):
-            # if output was specified as a directory but no filename, first check if it's an absolute or relative path
-            if not os.path.isabs(output):
-                # if it's a relative path, use the input file location as the base
+            dir = os.path.dirname(os.path.realpath(input))
+            output = os.path.join(dir, output)
+
+        # if output includes a directory, check to make sure it exists (or create if necessary)
+        else:
+            dir = os.path.dirname(output)
+            # if it's a relative path, use the input file location as the base
+            if not os.path.isabs(dir):
                 output = os.path.join(os.path.dirname(os.path.realpath(input)), output)
-            # create dir (if needed) and append filename
-            if not os.path.exists(output) or not os.path.isdir(output):
-                _log.debug(f'Creating output directory: {output}')
-                os.mkdir(output)
+            
+            # create dir (if needed)
+            if not os.path.exists(dir) or not os.path.isdir(dir):
+                os.mkdir(os.path.dirname(dir))
+        
+        # if output is a directory with no filename, append the default filename
+        if os.path.isdir(output):
             output = os.path.join(output, os.path.splitext(os.path.basename(input))[0] + '.RAW')
 
         # write output file
@@ -139,6 +145,7 @@ def get_polaris_filename(wav: str) -> str:
     You can pass in the file with or without a path; however, the return will only have the base file name.
     If it is unable to match the filename, it will return {wav_name}.RAW'''
     _log = logging.getLogger('Sound')
+
     wav = os.path.basename(wav)
     _log.debug(f'Matching filename: {wav}')
 
