@@ -49,7 +49,7 @@ def convert_wav_to_polaris_raw(input: str, output: str = None) -> str | None:
             
             # create dir (if needed)
             if not os.path.exists(dir) or not os.path.isdir(dir):
-                os.mkdir(os.path.dirname(dir))
+                os.mkdir(os.path.dirname(output))
         
         # if output is a directory with no filename, append the default filename
         if os.path.isdir(output):
