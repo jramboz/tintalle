@@ -16,12 +16,13 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QGridLayout,
-    QGroupBox, QHBoxLayout, QLabel, QLayout,
-    QListWidget, QListWidgetItem, QMainWindow, QMenu,
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComboBox,
+    QGridLayout, QGroupBox, QHBoxLayout, QHeaderView,
+    QLabel, QLayout, QMainWindow, QMenu,
     QMenuBar, QPushButton, QRadioButton, QSizePolicy,
     QSlider, QSpacerItem, QSpinBox, QStatusBar,
-    QTabWidget, QVBoxLayout, QWidget)
+    QTabWidget, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
+    QWidget)
 
 from qtexteditlogger import QTextEditLogger
 
@@ -281,11 +282,6 @@ class Ui_MainWindow(object):
         self.sound_tab.setObjectName(u"sound_tab")
         self.gridLayout_4 = QGridLayout(self.sound_tab)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
-        self.files_listWidget = QListWidget(self.sound_tab)
-        self.files_listWidget.setObjectName(u"files_listWidget")
-
-        self.gridLayout_4.addWidget(self.files_listWidget, 0, 0, 3, 1)
-
         self.effects_groupbox = QGroupBox(self.sound_tab)
         self.effects_groupbox.setObjectName(u"effects_groupbox")
         self.verticalLayout_4 = QVBoxLayout(self.effects_groupbox)
@@ -401,6 +397,17 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addItem(self.verticalSpacer_4, 1, 1, 1, 1)
 
+        self.files_treeWidget = QTreeWidget(self.sound_tab)
+        self.files_treeWidget.setObjectName(u"files_treeWidget")
+        self.files_treeWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.files_treeWidget.setProperty("showDropIndicator", False)
+        self.files_treeWidget.setUniformRowHeights(True)
+        self.files_treeWidget.setSortingEnabled(True)
+        self.files_treeWidget.setColumnCount(2)
+        self.files_treeWidget.header().setProperty("showSortIndicator", True)
+
+        self.gridLayout_4.addWidget(self.files_treeWidget, 0, 0, 3, 1)
+
         self.content_tabWidget.addTab(self.sound_tab, "")
 
         self.verticalLayout_2.addWidget(self.content_tabWidget)
@@ -448,7 +455,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.content_tabWidget.setCurrentIndex(0)
+        self.content_tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -511,6 +518,9 @@ class Ui_MainWindow(object):
         self.freespace_label.setText(QCoreApplication.translate("MainWindow", u"Free Space: --- MB", None))
         self.usedspace_label.setText(QCoreApplication.translate("MainWindow", u"Used Space: --- MB", None))
         self.totalspace_label.setText(QCoreApplication.translate("MainWindow", u"Total Space: --- MB", None))
+        ___qtreewidgetitem = self.files_treeWidget.headerItem()
+        ___qtreewidgetitem.setText(1, QCoreApplication.translate("MainWindow", u"Size", None));
+        ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"File Name", None));
         self.content_tabWidget.setTabText(self.content_tabWidget.indexOf(self.sound_tab), QCoreApplication.translate("MainWindow", u"Sound", None))
         self.logTextBox.setPlaceholderText("")
         self.menuConnection.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
