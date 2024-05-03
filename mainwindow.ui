@@ -104,7 +104,7 @@
          <bool>false</bool>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="color_tab">
          <attribute name="title">
@@ -145,6 +145,18 @@
              </item>
              <item row="3" column="1">
               <widget class="QSpinBox" name="w_spinbox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>45</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="maximum">
                 <number>255</number>
                </property>
@@ -198,6 +210,18 @@
              </item>
              <item row="1" column="1">
               <widget class="QSpinBox" name="g_spinbox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>45</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="maximum">
                 <number>255</number>
                </property>
@@ -205,6 +229,12 @@
              </item>
              <item row="0" column="2">
               <widget class="QSlider" name="r_slider">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="maximum">
                 <number>255</number>
                </property>
@@ -221,6 +251,18 @@
              </item>
              <item row="0" column="1">
               <widget class="QSpinBox" name="r_spinbox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>75</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="maximum">
                 <number>255</number>
                </property>
@@ -228,6 +270,18 @@
              </item>
              <item row="2" column="1">
               <widget class="QSpinBox" name="b_spinbox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>45</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="maximum">
                 <number>255</number>
                </property>
@@ -387,6 +441,9 @@
                <property name="text">
                 <string>Power On</string>
                </property>
+               <attribute name="buttonGroup">
+                <string notr="true">effects_buttonGroup</string>
+               </attribute>
               </widget>
              </item>
              <item>
@@ -394,6 +451,9 @@
                <property name="text">
                 <string>Power Off</string>
                </property>
+               <attribute name="buttonGroup">
+                <string notr="true">effects_buttonGroup</string>
+               </attribute>
               </widget>
              </item>
              <item>
@@ -401,6 +461,9 @@
                <property name="text">
                 <string>Hum</string>
                </property>
+               <attribute name="buttonGroup">
+                <string notr="true">effects_buttonGroup</string>
+               </attribute>
               </widget>
              </item>
              <item>
@@ -408,6 +471,9 @@
                <property name="text">
                 <string>Clash</string>
                </property>
+               <attribute name="buttonGroup">
+                <string notr="true">effects_buttonGroup</string>
+               </attribute>
               </widget>
              </item>
              <item>
@@ -415,6 +481,9 @@
                <property name="text">
                 <string>Swing</string>
                </property>
+               <attribute name="buttonGroup">
+                <string notr="true">effects_buttonGroup</string>
+               </attribute>
               </widget>
              </item>
              <item>
@@ -422,6 +491,9 @@
                <property name="text">
                 <string>SmoothSwing A</string>
                </property>
+               <attribute name="buttonGroup">
+                <string notr="true">effects_buttonGroup</string>
+               </attribute>
               </widget>
              </item>
              <item>
@@ -429,13 +501,9 @@
                <property name="text">
                 <string>SmoothSwing B</string>
                </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="beep_checkBox">
-               <property name="text">
-                <string>Beep</string>
-               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">effects_buttonGroup</string>
+               </attribute>
               </widget>
              </item>
             </layout>
@@ -605,7 +673,7 @@
        <bool>true</bool>
       </property>
       <property name="sizePolicy">
-       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+       <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -725,4 +793,11 @@
  </customwidgets>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="effects_buttonGroup">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+ </buttongroups>
 </ui>

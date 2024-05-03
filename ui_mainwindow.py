@@ -16,13 +16,13 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComboBox,
-    QGridLayout, QGroupBox, QHBoxLayout, QHeaderView,
-    QLabel, QLayout, QMainWindow, QMenu,
-    QMenuBar, QPushButton, QRadioButton, QSizePolicy,
-    QSlider, QSpacerItem, QSpinBox, QStatusBar,
-    QTabWidget, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup, QCheckBox,
+    QComboBox, QGridLayout, QGroupBox, QHBoxLayout,
+    QHeaderView, QLabel, QLayout, QMainWindow,
+    QMenu, QMenuBar, QPushButton, QRadioButton,
+    QSizePolicy, QSlider, QSpacerItem, QSpinBox,
+    QStatusBar, QTabWidget, QTreeWidget, QTreeWidgetItem,
+    QVBoxLayout, QWidget)
 
 from qtexteditlogger import QTextEditLogger
 
@@ -129,6 +129,12 @@ class Ui_MainWindow(object):
 
         self.w_spinbox = QSpinBox(self.color_groupbox)
         self.w_spinbox.setObjectName(u"w_spinbox")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.w_spinbox.sizePolicy().hasHeightForWidth())
+        self.w_spinbox.setSizePolicy(sizePolicy1)
+        self.w_spinbox.setMinimumSize(QSize(45, 0))
         self.w_spinbox.setMaximum(255)
 
         self.gridLayout.addWidget(self.w_spinbox, 3, 1, 1, 1)
@@ -163,12 +169,20 @@ class Ui_MainWindow(object):
 
         self.g_spinbox = QSpinBox(self.color_groupbox)
         self.g_spinbox.setObjectName(u"g_spinbox")
+        sizePolicy1.setHeightForWidth(self.g_spinbox.sizePolicy().hasHeightForWidth())
+        self.g_spinbox.setSizePolicy(sizePolicy1)
+        self.g_spinbox.setMinimumSize(QSize(45, 0))
         self.g_spinbox.setMaximum(255)
 
         self.gridLayout.addWidget(self.g_spinbox, 1, 1, 1, 1)
 
         self.r_slider = QSlider(self.color_groupbox)
         self.r_slider.setObjectName(u"r_slider")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.r_slider.sizePolicy().hasHeightForWidth())
+        self.r_slider.setSizePolicy(sizePolicy2)
         self.r_slider.setMaximum(255)
         self.r_slider.setOrientation(Qt.Horizontal)
         self.r_slider.setTickPosition(QSlider.TicksAbove)
@@ -178,12 +192,18 @@ class Ui_MainWindow(object):
 
         self.r_spinbox = QSpinBox(self.color_groupbox)
         self.r_spinbox.setObjectName(u"r_spinbox")
+        sizePolicy1.setHeightForWidth(self.r_spinbox.sizePolicy().hasHeightForWidth())
+        self.r_spinbox.setSizePolicy(sizePolicy1)
+        self.r_spinbox.setMinimumSize(QSize(75, 0))
         self.r_spinbox.setMaximum(255)
 
         self.gridLayout.addWidget(self.r_spinbox, 0, 1, 1, 1)
 
         self.b_spinbox = QSpinBox(self.color_groupbox)
         self.b_spinbox.setObjectName(u"b_spinbox")
+        sizePolicy1.setHeightForWidth(self.b_spinbox.sizePolicy().hasHeightForWidth())
+        self.b_spinbox.setSizePolicy(sizePolicy1)
+        self.b_spinbox.setMinimumSize(QSize(45, 0))
         self.b_spinbox.setMaximum(255)
 
         self.gridLayout.addWidget(self.b_spinbox, 2, 1, 1, 1)
@@ -287,55 +307,60 @@ class Ui_MainWindow(object):
         self.verticalLayout_4 = QVBoxLayout(self.effects_groupbox)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.poweron_checkBox = QCheckBox(self.effects_groupbox)
+        self.effects_buttonGroup = QButtonGroup(MainWindow)
+        self.effects_buttonGroup.setObjectName(u"effects_buttonGroup")
+        self.effects_buttonGroup.setExclusive(False)
+        self.effects_buttonGroup.addButton(self.poweron_checkBox)
         self.poweron_checkBox.setObjectName(u"poweron_checkBox")
 
         self.verticalLayout_4.addWidget(self.poweron_checkBox)
 
         self.poweroff_checkBox = QCheckBox(self.effects_groupbox)
+        self.effects_buttonGroup.addButton(self.poweroff_checkBox)
         self.poweroff_checkBox.setObjectName(u"poweroff_checkBox")
 
         self.verticalLayout_4.addWidget(self.poweroff_checkBox)
 
         self.hum_checkBox = QCheckBox(self.effects_groupbox)
+        self.effects_buttonGroup.addButton(self.hum_checkBox)
         self.hum_checkBox.setObjectName(u"hum_checkBox")
 
         self.verticalLayout_4.addWidget(self.hum_checkBox)
 
         self.clash_checkBox = QCheckBox(self.effects_groupbox)
+        self.effects_buttonGroup.addButton(self.clash_checkBox)
         self.clash_checkBox.setObjectName(u"clash_checkBox")
 
         self.verticalLayout_4.addWidget(self.clash_checkBox)
 
         self.swing_checkBox = QCheckBox(self.effects_groupbox)
+        self.effects_buttonGroup.addButton(self.swing_checkBox)
         self.swing_checkBox.setObjectName(u"swing_checkBox")
 
         self.verticalLayout_4.addWidget(self.swing_checkBox)
 
         self.smoothswingA_checkBox = QCheckBox(self.effects_groupbox)
+        self.effects_buttonGroup.addButton(self.smoothswingA_checkBox)
         self.smoothswingA_checkBox.setObjectName(u"smoothswingA_checkBox")
 
         self.verticalLayout_4.addWidget(self.smoothswingA_checkBox)
 
         self.smoothswingB_checkBox = QCheckBox(self.effects_groupbox)
+        self.effects_buttonGroup.addButton(self.smoothswingB_checkBox)
         self.smoothswingB_checkBox.setObjectName(u"smoothswingB_checkBox")
 
         self.verticalLayout_4.addWidget(self.smoothswingB_checkBox)
-
-        self.beep_checkBox = QCheckBox(self.effects_groupbox)
-        self.beep_checkBox.setObjectName(u"beep_checkBox")
-
-        self.verticalLayout_4.addWidget(self.beep_checkBox)
 
 
         self.gridLayout_4.addWidget(self.effects_groupbox, 0, 1, 1, 1)
 
         self.files_groupbox = QGroupBox(self.sound_tab)
         self.files_groupbox.setObjectName(u"files_groupbox")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.files_groupbox.sizePolicy().hasHeightForWidth())
-        self.files_groupbox.setSizePolicy(sizePolicy1)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.files_groupbox.sizePolicy().hasHeightForWidth())
+        self.files_groupbox.setSizePolicy(sizePolicy3)
         self.verticalLayout_3 = QVBoxLayout(self.files_groupbox)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.reset_sound_changes_button = QPushButton(self.files_groupbox)
@@ -418,11 +443,11 @@ class Ui_MainWindow(object):
         self.logTextBox = QTextEditLogger(self.centralwidget)
         self.logTextBox.setObjectName(u"logTextBox")
         self.logTextBox.setEnabled(True)
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Expanding)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.logTextBox.sizePolicy().hasHeightForWidth())
-        self.logTextBox.setSizePolicy(sizePolicy2)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Expanding)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.logTextBox.sizePolicy().hasHeightForWidth())
+        self.logTextBox.setSizePolicy(sizePolicy4)
         self.logTextBox.setMaximumSize(QSize(500, 16777215))
         self.logTextBox.setReadOnly(True)
 
@@ -455,7 +480,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.content_tabWidget.setCurrentIndex(1)
+        self.content_tabWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -509,7 +534,6 @@ class Ui_MainWindow(object):
         self.swing_checkBox.setText(QCoreApplication.translate("MainWindow", u"Swing", None))
         self.smoothswingA_checkBox.setText(QCoreApplication.translate("MainWindow", u"SmoothSwing A", None))
         self.smoothswingB_checkBox.setText(QCoreApplication.translate("MainWindow", u"SmoothSwing B", None))
-        self.beep_checkBox.setText(QCoreApplication.translate("MainWindow", u"Beep", None))
         self.files_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Files", None))
         self.reset_sound_changes_button.setText(QCoreApplication.translate("MainWindow", u"Reset Changes", None))
         self.sound_save_button.setText(QCoreApplication.translate("MainWindow", u"Save Changes", None))
