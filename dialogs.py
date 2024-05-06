@@ -77,7 +77,6 @@ class File_Upload_Progress_Dialog(QDialog):
         
         self.fileProgressBar = QProgressBar()
         self.fileProgressBar.setTextVisible(True)
-        self.fileProgressBar.setFormat('Uploaded %v / %m bytes')
         self.layout.addWidget(self.fileProgressBar)
         
         self.totalProgressBar = QProgressBar()
@@ -88,13 +87,11 @@ class File_Upload_Progress_Dialog(QDialog):
         
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
-
-        #self.show()
     
     def set_num_files(self, num_files: int):
         '''Set the number of fiiles to be uploaded in this batch.'''
         self.totalProgressBar.setMaximum(num_files)
-        self.totalProgressBar.setFormat("Completed %v of %m files")
+        self.totalProgressBar.setFormat("%v/%m")
     
     def file_completed(self):
         '''Update file completed count in progress bar'''
