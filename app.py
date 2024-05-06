@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QVBoxLayout, QLabel, QProgressBar, QFileDialog
-from PySide6.QtGui import QColor, QPixmap, QIcon, QPalette
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QLabel, QFileDialog, QTreeWidgetItem, QCheckBox
+from PySide6.QtGui import QColor, QPixmap, QIcon, QColorConstants
 import PySide6.QtCore as QtCore
 from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException
@@ -14,6 +14,7 @@ import sys
 import os
 from asgiref.sync import sync_to_async
 from AsyncioPySide6 import AsyncioPySide6
+import asyncio
 
 class SCStatus(Enum):
     '''Enum for saber connection status'''
@@ -59,12 +60,25 @@ class Upload_Controller():
             self._upload_next_file()
         
 
+def getHumanReadableSize(size,precision=2):
+    '''Takes a size in bytes and outputs human-readable string.'''
+    # taken from https://stackoverflow.com/a/32009595
+    suffixes=['B','KB','MB','GB','TB']
+    suffixIndex = 0
+    while size >= 1024 and suffixIndex < len(suffixes)-1:
+        suffixIndex += 1 #increment the index of the suffix
+        size = size/1024.0 #apply the division
+    return "%.*f%s"%(precision,size,suffixes[suffixIndex])
+
 class Main_Window(QMainWindow, Ui_MainWindow):
     sc: Saber_Controller = None
-    saber_config: dict = None   # holds saber config loaded from saber
-    files_dict: dict = None
-    saber_info: dict = None
-    current_config: dict = None # holds saber config as modified in the GUI
+    saber_config: dict = None       # holds saber config loaded from saber
+    files_dict: dict = None         # holds list of files loaded from saber
+    saber_info: dict = None         # holds serial and version info
+    space_info: dict = {'free' :0,  # holds free/used/total space information
+                        'used': 0,
+                        'total':0}
+    current_config: dict = None     # holds saber config as modified in the GUI
     log = logging.getLogger()
 
     def __init__(self, *args, obj=None, **kwargs) -> None:
@@ -106,6 +120,13 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.preview_color_button.clicked.connect(self.preview_button_handler)
         self.erase_button.clicked.connect(self.erase_button_handler)
         self.upload_button.clicked.connect(self.upload_button_handler)
+        self.sound_save_button.clicked.connect(self.sound_save_button_handler)
+        self.reset_sound_changes_button.clicked.connect(self.reload_config_action_handler)
+
+        self.files_treeWidget.itemSelectionChanged.connect(self.set_effects_checkboxes)
+
+        for box in self.effects_buttonGroup.buttons():
+            box.stateChanged.connect(self.update_sound_config)
 
         self.show()
 
@@ -167,6 +188,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         else: # disconnected
             # clear the contents
             self.clear_color_ui()
+            self.clear_sound_ui()
 
             # disable tabs and  enable saber select
             self.content_tabWidget.setEnabled(False)
@@ -194,7 +216,6 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         if not self.sc:
             port = self.saber_select_box.currentText()
             self.sc = Saber_Controller(port, gui=True, loglevel=self.log.getEffectiveLevel())
-            self.sc.log.addHandler(self.logTextBox)
         
         # create a "loading" box while connecting
         w = Loading_Box(self, "Connecting to saber.")
@@ -220,6 +241,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.log.debug(f'Retrieved files from saber:\n{self.files_dict}')
         self.saber_info = await sync_to_async(self.sc.get_saber_info)()
         self.log.debug(f'Retrieved saber info: {self.saber_info}')
+        self.space_info['free'] = await sync_to_async(self.sc.get_free_space)()
+        self.space_info['used'] = await sync_to_async(self.sc.get_used_space)()
+        self.space_info['total'] = await sync_to_async(self.sc.get_total_space)()
+        self.log.debug(f'Retrieved storage info: Free - {self.space_info['free']}\tUsed - {self.space_info['used']}\tTotal - {self.space_info['total']}')
         self.log.info('Successfully retrieved configuration from saber.')
 
         self.update_ui_with_config()
@@ -228,6 +253,11 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def update_ui_with_config(self):
         '''Populates UI elements with the config data loaded from the saber.'''
+
+        # Clear any displayed configuration
+        self.clear_color_ui()
+        self.clear_sound_ui()
+
         # Populate the list of color banks
         for i, x in enumerate(self.current_config['bank']):
             # create an icon that's just a box filled with the main blade color
@@ -237,6 +267,42 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         activeBank = self.current_config['activeBank']
         self.color_bank_select_box.setCurrentIndex(activeBank)
         self.set_color_inputs_to_color(self.current_config['bank'][activeBank][self.get_selected_effect()])
+
+        # Populate sound files list
+        items = []
+        
+        for name, size in self.files_dict.items():
+            items.append(QTreeWidgetItem([name, str(size)]))
+        
+        # Check for any missing files that config.ini expects
+        config_files = []
+        for effect in self.current_config['sounds'].keys():
+            if effect == 'soundengine': continue # just skip this one. Not sure what it's for, but it isn't an effect
+            config_files += self.current_config['sounds'][effect]
+        config_files = list(set(config_files)) #remove duplicates
+        missing_files = [i for i in config_files if i not in self.files_dict.keys()] # filter to only items that are not in the files list
+        self.log.debug(f'Config.ini expects these files, but they are not present on the saber: {missing_files}')
+
+        for file in missing_files:
+            item = QTreeWidgetItem([file, '0'])
+            for i in [0, 1]:
+                font = item.font(i)
+                font.setItalic(True)
+                #brush = item.foreground(i)
+                # brush.setColor(QColor('red'))
+                item.setFont(i, font)
+                item.setForeground(i, QColor('red'))
+            items.append(item)
+
+        self.files_treeWidget.insertTopLevelItems(0, items)
+        self.files_treeWidget.sortItems(0, Qt.SortOrder.AscendingOrder)
+        self.files_treeWidget.resizeColumnToContents(0)
+        self.files_treeWidget.setCurrentItem(self.files_treeWidget.topLevelItem(0))
+
+        # Display space usage
+        self.freespace_label.setText('Free Space: ' + getHumanReadableSize(self.space_info['free']))
+        self.usedspace_label.setText('Used Space: ' + getHumanReadableSize(self.space_info['used']))
+        self.totalspace_label.setText('Total Space: ' + getHumanReadableSize(self.space_info['total']))
 
     def disconnect_saber(self):
         '''Disconnect saber and perform any necessary cleanup'''
@@ -253,7 +319,6 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         )
 
         if button == QMessageBox.Yes:
-            self.clear_color_ui()
             AsyncioPySide6.runTask(self.reload_saber_configuration())
 
     # ------------------------- #
@@ -336,7 +401,78 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             
             # Create and run the upload controller
             self.uc = Upload_Controller(files, display, self.sc)
+            #TODO: Use worker to run in thread, then refresh files display when finished
             self.uc.run()
+
+    def clear_sound_ui(self):
+        for box in self.effects_buttonGroup.buttons():
+            box.blockSignals(True)
+            box.setChecked(False)
+            box.blockSignals(False)
+        self.files_treeWidget.clear()
+        
+
+    @staticmethod
+    def get_effect_for_checkBox(box: QCheckBox) -> str:
+        '''Returns the sound effect name that corresponds to the specified checkbox.'''
+        match box.text():
+            case 'Power On':
+                return 'on'
+            case 'Power Off':
+                return 'off'
+            case 'Hum':
+                return 'hum'
+            case 'Clash':
+                return 'clash'
+            case 'Swing':
+                return 'swing'
+            case 'SmoothSwing A':
+                return 'smoothSwingA'
+            case 'SmoothSwing B':
+                return 'smoothSwingB'
+            case _:
+                return ''
+
+    def set_effects_checkboxes(self):
+        '''Set the effects checkboxes based on the currently selected sound file.'''
+        file = self.files_treeWidget.selectedItems()[0].data(0, Qt.ItemDataRole.DisplayRole) if self.files_treeWidget.selectedItems() else ''
+        for box in self.effects_buttonGroup.buttons():
+            box.blockSignals(True)
+            effect = self.get_effect_for_checkBox(box)
+            if effect in self.current_config['sounds']:
+                box.setChecked(file in self.current_config['sounds'][effect])
+            box.blockSignals(False)
+    
+    def update_sound_config(self, s: Qt.CheckState):
+        '''Update the current sound configuration to add or remove the selected filename from the list for the effect.'''
+        box = self.sender()
+        effect = self.get_effect_for_checkBox(box)
+        filename = self.files_treeWidget.selectedItems()[0].text(0)
+        state = Qt.CheckState(s)
+        if state == Qt.CheckState.Checked:
+            self.log.debug(f'Adding file {filename} to effect {effect}.')
+            if effect not in self.current_config['sounds'].keys():
+                self.current_config['sounds'][effect] = []
+            self.current_config['sounds'][effect].append(filename)
+            self.current_config['sounds'][effect].sort()
+        elif state == Qt.CheckState.Unchecked:
+            self.log.debug(f'Removing file {filename} from effect {effect}.')
+            self.current_config['sounds'][effect].remove(filename)
+        self.log.debug(f'Updated list for effect {effect}: {self.current_config['sounds'][effect]}')
+
+    def sound_save_button_handler(self):
+        '''Write the sound file effect settings to the saber.'''
+        w = Loading_Box(self, "Saving configuration to saber.")
+        w.show()
+
+        async def _save_sound_settings(self, w):
+            for effect, files in self.current_config['sounds'].items():
+                if effect == 'soundengine': continue
+                self.sc.set_sounds_for_effect(effect, files)
+                await asyncio.sleep(2)
+            AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+
+        AsyncioPySide6.runTask(_save_sound_settings(self, w))
 
     # ------------------------- #
     # Firmware handling methods #
