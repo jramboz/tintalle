@@ -143,4 +143,4 @@ class AboutDialog(Ui_AboutDialog, QDialog):
         self.setupUi(self)
         self.version_label.setText(self.version_label.text() + version)
         self.authors_label.setText(self.authors_label.text() + authors)
-        self.homepage_label.setText(self.homepage_label.text() + homepage)
+        self.homepage_label.setText(self.homepage_label.text() + f'<a href="{homepage}">{homepage}</a>')

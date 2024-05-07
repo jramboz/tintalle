@@ -83,6 +83,9 @@
          <property name="text">
           <string>Homepage: </string>
          </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -106,6 +109,9 @@
          <property name="wordWrap">
           <bool>true</bool>
          </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -114,6 +120,9 @@
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This program is free software: you can redistribute it and/or modify it under the terms of the &lt;a href=&quot;https://www.gnu.org/licenses/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#3586ff;&quot;&gt;GNU General Public License&lt;/span&gt;&lt;/a&gt; as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="openExternalLinks">
           <bool>true</bool>
          </property>
         </widget>

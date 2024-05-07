@@ -67,6 +67,7 @@ class Ui_AboutDialog(object):
 
         self.homepage_label = QLabel(AboutDialog)
         self.homepage_label.setObjectName(u"homepage_label")
+        self.homepage_label.setOpenExternalLinks(True)
 
         self.verticalLayout_2.addWidget(self.homepage_label)
 
@@ -77,12 +78,14 @@ class Ui_AboutDialog(object):
         self.label = QLabel(AboutDialog)
         self.label.setObjectName(u"label")
         self.label.setWordWrap(True)
+        self.label.setOpenExternalLinks(True)
 
         self.verticalLayout_2.addWidget(self.label)
 
         self.label_2 = QLabel(AboutDialog)
         self.label_2.setObjectName(u"label_2")
         self.label_2.setWordWrap(True)
+        self.label_2.setOpenExternalLinks(True)
 
         self.verticalLayout_2.addWidget(self.label_2)
 
