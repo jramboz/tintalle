@@ -11,7 +11,7 @@ This is still very much a work in progress at the moment. It's getting close to 
 - Erase all files on saber
 - Upload files to saber
 - Check for latest firmware release
-- Update firmware on saber (requires [tycmd](https://github.com/Koromix/tytools/releases) to be installed)
+- Update firmware on saber (requires [tycmd](https://github.com/Koromix/tytools/releases) to be installed) \[NOTE: currently only works for Anima EVO\]
 - Manage saber colors
 - Set sounds to corresponding effects
 
