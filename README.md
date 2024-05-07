@@ -19,8 +19,8 @@ This is still very much a work in progress at the moment. It's getting close to 
 This is not guaranteed to be bug-free. In fact, it's practically guaranteed to have bugs! I'm just an amateur coder who's doing his best to make a thing. I'm sure there's sloppy code in here, and probably a lot of things that can be done better. But I'm learning as I go, and maybe down the road someone more knowlegable can clean things up.
 
 ## Requirements
-- Pyside6
-- py2saber
+- PySide6
+- [py2saber](https://github.com/jramboz/py2saber)
 - requests
 - wget
 - asgiref
