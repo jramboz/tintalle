@@ -56,6 +56,8 @@ class Upload_Controller():
 
         if self.display.halt or len(self.files) == 0: #user has clicked cancel button or no more files left
             self.display.upload_complete()
+            # this is kind of a hack and not great software design, but with the callbacks and all this seems to tbe the best place to put the reload
+            AsyncioPySide6.runTask(self.display.parent().reload_saber_configuration())
         else:
             self._upload_next_file()
         
@@ -195,11 +197,6 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.action_Reload_Config.setEnabled(False)
             self.saber_select_box.setEnabled(True)
 
-    def error_handler(self, e): #TODO: replace with error handler from dialogs.py
-        '''Generic error handler.'''
-        self.log.error('An error has occurred.')
-        self.log.error(e)
-
     def connect_button_handler(self):
         if self.sc: # if connected, disconnect
             self.disconnect_saber()
@@ -207,7 +204,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             try:
                 self.connect_saber()
             except NoAnimaSaberException:
-                self.error_handler(NoAnimaSaberException)
+                error_handler(NoAnimaSaberException(), parent=self)
                 self.display_connection_status(SCStatus.DISCONNECTED)
     
     def connect_saber(self):
@@ -364,11 +361,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             def f():
                 '''Actions to do when task is finished.'''
                 pd.finished()
+                AsyncioPySide6.runTask(self.reload_saber_configuration())
 
             def e(error: tuple):
                 '''What to do with an error.'''
                 pd.report("An error has occurred. See the log for details.")
-                self.error_handler(e)
+                error_handler(e, parent=self)
 
             def r(obj: object):
                 '''What to do with task result.'''
@@ -402,7 +400,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             # Create and run the upload controller
             self.uc = Upload_Controller(files, display, self.sc)
             #TODO: Use worker to run in thread, then refresh files display when finished
-            self.uc.run()
+            try:
+                self.uc.run()
+            except Exception as e:
+                error_handler(e, parent=self)
 
     def clear_sound_ui(self):
         for box in self.effects_buttonGroup.buttons():
@@ -410,7 +411,6 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             box.setChecked(False)
             box.blockSignals(False)
         self.files_treeWidget.clear()
-        
 
     @staticmethod
     def get_effect_for_checkBox(box: QCheckBox) -> str:
@@ -468,6 +468,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         async def _save_sound_settings(self, w):
             for effect, files in self.current_config['sounds'].items():
                 if effect == 'soundengine': continue
+                self.log.info(f'Setting sounds for effect: {effect}')
                 self.sc.set_sounds_for_effect(effect, files)
                 await asyncio.sleep(2)
             AsyncioPySide6.runTask(self.reload_saber_configuration(w))
