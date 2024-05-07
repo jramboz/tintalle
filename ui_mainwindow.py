@@ -31,6 +31,9 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(897, 697)
+        icon = QIcon()
+        icon.addFile(u"tintalle.png", QSize(), QIcon.Normal, QIcon.Off)
+        MainWindow.setWindowIcon(icon)
         self.action_Refresh_Ports = QAction(MainWindow)
         self.action_Refresh_Ports.setObjectName(u"action_Refresh_Ports")
         self.action_Refresh_Ports.setShortcutVisibleInContextMenu(True)
@@ -48,6 +51,8 @@ class Ui_MainWindow(object):
         self.action_Check_for_Latest_Firwmare.setObjectName(u"action_Check_for_Latest_Firwmare")
         self.action_Install_Firmware_from_File = QAction(MainWindow)
         self.action_Install_Firmware_from_File.setObjectName(u"action_Install_Firmware_from_File")
+        self.action_about = QAction(MainWindow)
+        self.action_about.setObjectName(u"action_about")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout_2 = QHBoxLayout(self.centralwidget)
@@ -463,6 +468,8 @@ class Ui_MainWindow(object):
         self.menuTroubleshooting.setObjectName(u"menuTroubleshooting")
         self.menuFirmware = QMenu(self.menubar)
         self.menuFirmware.setObjectName(u"menuFirmware")
+        self.menuHelp = QMenu(self.menubar)
+        self.menuHelp.setObjectName(u"menuHelp")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -471,12 +478,14 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuConnection.menuAction())
         self.menubar.addAction(self.menuFirmware.menuAction())
         self.menubar.addAction(self.menuTroubleshooting.menuAction())
+        self.menubar.addAction(self.menuHelp.menuAction())
         self.menuConnection.addAction(self.action_Refresh_Ports)
         self.menuConnection.addAction(self.action_Reload_Config)
         self.menuTroubleshooting.addAction(self.action_Show_Hide_Log)
         self.menuTroubleshooting.addAction(self.action_Debug_Mode)
         self.menuFirmware.addAction(self.action_Check_for_Latest_Firwmare)
         self.menuFirmware.addAction(self.action_Install_Firmware_from_File)
+        self.menuHelp.addAction(self.action_about)
 
         self.retranslateUi(MainWindow)
 
@@ -503,6 +512,7 @@ class Ui_MainWindow(object):
         self.action_Reload_Config.setText(QCoreApplication.translate("MainWindow", u"Reload &Config", None))
         self.action_Check_for_Latest_Firwmare.setText(QCoreApplication.translate("MainWindow", u"&Check for Latest Firwmare", None))
         self.action_Install_Firmware_from_File.setText(QCoreApplication.translate("MainWindow", u"&Install Firmware from File...", None))
+        self.action_about.setText(QCoreApplication.translate("MainWindow", u"&About Tintalle", None))
         self.connection_groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Port:", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Status:", None))
@@ -550,5 +560,6 @@ class Ui_MainWindow(object):
         self.menuConnection.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
         self.menuTroubleshooting.setTitle(QCoreApplication.translate("MainWindow", u"Troubleshooting", None))
         self.menuFirmware.setTitle(QCoreApplication.translate("MainWindow", u"Firmware", None))
+        self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
     # retranslateUi
 

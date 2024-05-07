@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Tintalle</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>tintalle.png</normaloff>tintalle.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
@@ -724,9 +728,16 @@
     <addaction name="action_Check_for_Latest_Firwmare"/>
     <addaction name="action_Install_Firmware_from_File"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="action_about"/>
+   </widget>
    <addaction name="menuConnection"/>
    <addaction name="menuFirmware"/>
    <addaction name="menuTroubleshooting"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_Refresh_Ports">
@@ -781,6 +792,11 @@
   <action name="action_Install_Firmware_from_File">
    <property name="text">
     <string>&amp;Install Firmware from File...</string>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="text">
+    <string>&amp;About Tintalle</string>
    </property>
   </action>
  </widget>

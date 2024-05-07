@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QLabel, QFileDialog, QTreeWidgetItem, QCheckBox
 from PySide6.QtGui import QColor, QPixmap, QIcon, QColorConstants
 import PySide6.QtCore as QtCore
+from PySide6.QtCore import Qt
 from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException
 from threadrunner import *
@@ -15,6 +16,10 @@ import os
 from asgiref.sync import sync_to_async
 from AsyncioPySide6 import AsyncioPySide6
 import asyncio
+
+script_version = '0.1'
+script_authors = 'Jason Ramboz'
+script_repo = 'https://github.com/jramboz/tintalle'
 
 class SCStatus(Enum):
     '''Enum for saber connection status'''
@@ -99,6 +104,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Show_Hide_Log.triggered.connect(self.show_hide_log_handler)
         self.action_Debug_Mode.triggered.connect(self.debug_mode_handler)
         self.action_Reload_Config.triggered.connect(self.reload_config_action_handler)
+        self.action_about.triggered.connect(self.about_action_handler)
         
         self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
         self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
@@ -135,6 +141,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         # Search for connected sabers
         self.display_connection_status(SCStatus.SEARCHING)
         self.update_ports()
+
+    def about_action_handler(self):
+        dlg = AboutDialog(script_version, script_authors, script_repo, self)
+        dlg.exec()
 
     # --------------------------------- #
     # Saber connection handling methods #

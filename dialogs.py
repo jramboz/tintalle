@@ -1,8 +1,7 @@
-from typing import Optional
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLabel, QProgressBar, QPlainTextEdit, QWidget, QMessageBox
 import PySide6.QtCore as QtCore
 import logging
+from ui_aboutdialog import Ui_AboutDialog
 
 class Progress_Dialog(QDialog):
     '''Simple dialog to display progress of a task and activate a close button when complete.'''
@@ -27,8 +26,6 @@ class Progress_Dialog(QDialog):
         if not autoclose:
             self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
-
-        #self.show()
     
     def report(self, msg: str):
         '''Display a message below the progress bar.'''
@@ -139,3 +136,11 @@ def error_handler(error, info = None, parent: QWidget = None) -> None:
     if info:
         box.setInformativeText(str(info))
     box.exec()
+
+class AboutDialog(Ui_AboutDialog, QDialog):
+    def __init__(self, version: str, authors: str, homepage: str, parent: QWidget = None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.version_label.setText(self.version_label.text() + version)
+        self.authors_label.setText(self.authors_label.text() + authors)
+        self.homepage_label.setText(self.homepage_label.text() + homepage)
