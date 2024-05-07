@@ -36,6 +36,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowIcon(icon)
         self.action_Refresh_Ports = QAction(MainWindow)
         self.action_Refresh_Ports.setObjectName(u"action_Refresh_Ports")
+        self.action_Refresh_Ports.setIconVisibleInMenu(True)
         self.action_Refresh_Ports.setShortcutVisibleInContextMenu(True)
         self.action_Show_Hide_Log = QAction(MainWindow)
         self.action_Show_Hide_Log.setObjectName(u"action_Show_Hide_Log")
@@ -46,6 +47,7 @@ class Ui_MainWindow(object):
         self.action_Reload_Config = QAction(MainWindow)
         self.action_Reload_Config.setObjectName(u"action_Reload_Config")
         self.action_Reload_Config.setEnabled(False)
+        self.action_Reload_Config.setIconVisibleInMenu(True)
         self.action_Reload_Config.setShortcutVisibleInContextMenu(True)
         self.action_Check_for_Latest_Firwmare = QAction(MainWindow)
         self.action_Check_for_Latest_Firwmare.setObjectName(u"action_Check_for_Latest_Firwmare")
@@ -53,6 +55,7 @@ class Ui_MainWindow(object):
         self.action_Install_Firmware_from_File.setObjectName(u"action_Install_Firmware_from_File")
         self.action_about = QAction(MainWindow)
         self.action_about.setObjectName(u"action_about")
+        self.action_about.setIcon(icon)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout_2 = QHBoxLayout(self.centralwidget)
@@ -496,7 +499,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Tintalle", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Tintall\u00eb", None))
         self.action_Refresh_Ports.setText(QCoreApplication.translate("MainWindow", u"&Refresh Ports", None))
 #if QT_CONFIG(shortcut)
         self.action_Refresh_Ports.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+R", None))
@@ -512,7 +515,7 @@ class Ui_MainWindow(object):
         self.action_Reload_Config.setText(QCoreApplication.translate("MainWindow", u"Reload &Config", None))
         self.action_Check_for_Latest_Firwmare.setText(QCoreApplication.translate("MainWindow", u"&Check for Latest Firwmare", None))
         self.action_Install_Firmware_from_File.setText(QCoreApplication.translate("MainWindow", u"&Install Firmware from File...", None))
-        self.action_about.setText(QCoreApplication.translate("MainWindow", u"&About Tintalle", None))
+        self.action_about.setText(QCoreApplication.translate("MainWindow", u"&About Tintall\u00eb", None))
         self.connection_groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Port:", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Status:", None))

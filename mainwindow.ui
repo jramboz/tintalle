@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Tintalle</string>
+   <string>Tintallë</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -747,6 +747,9 @@
    <property name="shortcut">
     <string>Ctrl+R</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
    <property name="shortcutVisibleInContextMenu">
     <bool>true</bool>
    </property>
@@ -780,6 +783,9 @@
    <property name="text">
     <string>Reload &amp;Config</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
    <property name="shortcutVisibleInContextMenu">
     <bool>true</bool>
    </property>
@@ -795,8 +801,12 @@
    </property>
   </action>
   <action name="action_about">
+   <property name="icon">
+    <iconset>
+     <normaloff>tintalle.png</normaloff>tintalle.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;About Tintalle</string>
+    <string>&amp;About Tintallë</string>
    </property>
   </action>
  </widget>
