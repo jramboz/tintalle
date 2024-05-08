@@ -19,7 +19,7 @@ import asyncio
 import platform
 import resources_rc
 
-script_version = '0.1'
+script_version = '0.1.0'
 script_authors = 'Jason Ramboz'
 script_repo = 'https://github.com/jramboz/tintalle'
 
