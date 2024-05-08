@@ -10,3 +10,4 @@ config.json
 /tests
 /build
 /dist
+.bumpversion.cfg
