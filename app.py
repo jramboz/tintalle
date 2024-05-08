@@ -243,6 +243,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             w = Loading_Box(self, "Reading configuration from saber.")
             w.show()
 
+        self.set_ui_enabled(False)
+
         self.saber_config = eval(await sync_to_async(self.sc.read_config_ini)())
         self.current_config = self.saber_config
         self.log.debug(f'Retrieved config.ini:\n{self.saber_config}')
@@ -257,6 +259,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.log.info('Successfully retrieved configuration from saber.')
 
         self.update_ui_with_config()
+        self.set_ui_enabled(True)
 
         w.close()
 
