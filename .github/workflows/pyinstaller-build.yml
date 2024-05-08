@@ -1,0 +1,29 @@
+name: Build Executables with PyInstaller
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  pyinstaller-build-win:
+    runs-on: windows-latest
+    steps:
+      - name: PyInstaller Action
+        uses: Martin005/pyinstaller-action@v1.2.0
+        with:
+          python_ver: '3.10'
+          spec: 'tintalle-win.spec'
+          requirements: 'build-requirements.txt'
+          upload_exe_with_name: 'py2saber-win'
+  pyinstaller-build-mac:
+    runs-on: macos-13
+    steps:
+      - name: PyInstaller Action
+        uses: Martin005/pyinstaller-action@v1.2.0
+        with:
+          python_ver: '3.10'
+          spec: 'tintalle-mac.spec'
+          requirements: 'build-requirements.txt'
+          python_arch: 'universal2'
+          upload_exe_with_name: 'py2saber-mac'
