@@ -7,3 +7,5 @@
 config.json
 /env-tintalle/
 /tests
+/build
+/dist
