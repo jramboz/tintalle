@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="img">
+    <file alias="tintalle.png">img/tintalle.png</file>
+    <file alias="tintalle.ico">img/tintalle.ico</file>
+  </qresource>
+</RCC>

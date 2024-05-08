@@ -16,6 +16,8 @@ import os
 from asgiref.sync import sync_to_async
 from AsyncioPySide6 import AsyncioPySide6
 import asyncio
+import platform
+import resources_rc
 
 script_version = '0.1'
 script_authors = 'Jason Ramboz'
@@ -692,10 +694,22 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         await self.sc.set_color(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white'])
         await self.sc.set_active_bank(bank)
 
-
+# set icon for Windows - from https://www.pythonguis.com/tutorials/packaging-pyqt5-pyside2-applications-windows-pyinstaller/#building-a-windows-installer-with-installforge
+try:
+    from ctypes import windll  # Only exists on Windows.
+    myappid = 'com.sublunarysphere.tintalle.' + script_version
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except ImportError:
+    pass
 
 if __name__ == "__main__":
+    basedir = os.path.dirname(__file__)
     app = QApplication(sys.argv)
+    if platform.system == "Windows":
+        icon = ':/img/tintalle.ico'
+    else:
+        icon = ':/img/tintalle.png'
+    app.setWindowIcon(QIcon(':/img/tintalle.png'))
     with AsyncioPySide6.use_asyncio():
         mainwindow = Main_Window()
 

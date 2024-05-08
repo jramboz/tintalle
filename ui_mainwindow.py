@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.6.2
+## Created by: Qt User Interface Compiler version 6.7.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup, QC
     QVBoxLayout, QWidget)
 
 from qtexteditlogger import QTextEditLogger
+import resources_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -32,7 +33,7 @@ class Ui_MainWindow(object):
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(897, 697)
         icon = QIcon()
-        icon.addFile(u"tintalle.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/img/tintalle.png", QSize(), QIcon.Normal, QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.action_Refresh_Ports = QAction(MainWindow)
         self.action_Refresh_Ports.setObjectName(u"action_Refresh_Ports")
@@ -120,12 +121,12 @@ class Ui_MainWindow(object):
         self.color_groupbox.setObjectName(u"color_groupbox")
         self.gridLayout = QGridLayout(self.color_groupbox)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.gridLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
+        self.gridLayout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.g_slider = QSlider(self.color_groupbox)
         self.g_slider.setObjectName(u"g_slider")
         self.g_slider.setMaximum(255)
-        self.g_slider.setOrientation(Qt.Horizontal)
-        self.g_slider.setTickPosition(QSlider.TicksAbove)
+        self.g_slider.setOrientation(Qt.Orientation.Horizontal)
+        self.g_slider.setTickPosition(QSlider.TickPosition.TicksAbove)
         self.g_slider.setTickInterval(50)
 
         self.gridLayout.addWidget(self.g_slider, 1, 2, 1, 1)
@@ -150,8 +151,8 @@ class Ui_MainWindow(object):
         self.b_slider = QSlider(self.color_groupbox)
         self.b_slider.setObjectName(u"b_slider")
         self.b_slider.setMaximum(255)
-        self.b_slider.setOrientation(Qt.Horizontal)
-        self.b_slider.setTickPosition(QSlider.TicksAbove)
+        self.b_slider.setOrientation(Qt.Orientation.Horizontal)
+        self.b_slider.setTickPosition(QSlider.TickPosition.TicksAbove)
         self.b_slider.setTickInterval(50)
 
         self.gridLayout.addWidget(self.b_slider, 2, 2, 1, 1)
@@ -169,8 +170,8 @@ class Ui_MainWindow(object):
         self.w_slider = QSlider(self.color_groupbox)
         self.w_slider.setObjectName(u"w_slider")
         self.w_slider.setMaximum(255)
-        self.w_slider.setOrientation(Qt.Horizontal)
-        self.w_slider.setTickPosition(QSlider.TicksAbove)
+        self.w_slider.setOrientation(Qt.Orientation.Horizontal)
+        self.w_slider.setTickPosition(QSlider.TickPosition.TicksAbove)
         self.w_slider.setTickInterval(50)
 
         self.gridLayout.addWidget(self.w_slider, 3, 2, 1, 1)
@@ -192,8 +193,8 @@ class Ui_MainWindow(object):
         sizePolicy2.setHeightForWidth(self.r_slider.sizePolicy().hasHeightForWidth())
         self.r_slider.setSizePolicy(sizePolicy2)
         self.r_slider.setMaximum(255)
-        self.r_slider.setOrientation(Qt.Horizontal)
-        self.r_slider.setTickPosition(QSlider.TicksAbove)
+        self.r_slider.setOrientation(Qt.Orientation.Horizontal)
+        self.r_slider.setTickPosition(QSlider.TickPosition.TicksAbove)
         self.r_slider.setTickInterval(50)
 
         self.gridLayout.addWidget(self.r_slider, 0, 2, 1, 1)
@@ -432,7 +433,7 @@ class Ui_MainWindow(object):
 
         self.files_treeWidget = QTreeWidget(self.sound_tab)
         self.files_treeWidget.setObjectName(u"files_treeWidget")
-        self.files_treeWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.files_treeWidget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.files_treeWidget.setProperty("showDropIndicator", False)
         self.files_treeWidget.setUniformRowHeights(True)
         self.files_treeWidget.setSortingEnabled(True)

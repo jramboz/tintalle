@@ -1,0 +1,6 @@
+# Requirements to build with pyinstaller
+# specify this file when using the github pyinstaller action
+pyinstaller
+Pillow
+
+-r requirements.txt

@@ -11,12 +11,16 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>About Tintallë</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/img/tintalle.png</normaloff>:/img/tintalle.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item alignment="Qt::AlignTop">
+     <item alignment="Qt::AlignmentFlag::AlignTop">
       <widget class="QLabel" name="icon_label">
        <property name="maximumSize">
         <size>
@@ -28,7 +32,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap>tintalle.png</pixmap>
+        <pixmap resource="resources.qrc">:/img/tintalle.png</pixmap>
        </property>
        <property name="scaledContents">
         <bool>true</bool>
@@ -37,7 +41,7 @@
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item alignment="Qt::AlignTop">
+       <item alignment="Qt::AlignmentFlag::AlignTop">
         <widget class="QLabel" name="label_3">
          <property name="font">
           <font>
@@ -61,7 +65,7 @@
          </property>
         </widget>
        </item>
-       <item alignment="Qt::AlignTop">
+       <item alignment="Qt::AlignmentFlag::AlignTop">
         <widget class="QLabel" name="desc_label">
          <property name="text">
           <string>Python/Qt-based application for managing OpenCore-based lightsabers.</string>
@@ -91,7 +95,7 @@
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -134,16 +138,18 @@
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
