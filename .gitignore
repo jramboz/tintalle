@@ -5,7 +5,8 @@
 /py2saber
 /*.hex
 config.json
-/env-tintalle/
+/env-tintalle
+/env-build
 /tests
 /build
 /dist
