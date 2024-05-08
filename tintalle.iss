@@ -13,7 +13,7 @@
 AppId={{D18942A8-932F-439D-87C9-510E6F12B149}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -23,8 +23,9 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=tintalle
-SetupIconFile=\\Mac\Home\dev\tintalle\img\tintalle.ico
+OutputBaseFilename=tintalle-{#MyAppVersion}
+OutputDir=dist\
+SetupIconFile=img\tintalle.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -36,8 +37,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "\\Mac\Home\dev\tintalle\dist\Tintalle\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "\\Mac\Home\dev\tintalle\dist\Tintalle\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\Tintalle\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\Tintalle\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
