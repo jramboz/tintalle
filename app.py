@@ -685,14 +685,21 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         s_color = self.current_config['bank'][i]['swing']
         self.log.debug(f'Main color: {m_color}\nClash color: {cl_color}\nSwing color: {s_color}')
 
-        AsyncioPySide6.runTask(self._set_colors(i, m_color, cl_color, s_color))
-        AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+        try:
+            AsyncioPySide6.runTask(self._set_colors(i, m_color, cl_color, s_color, w))
+        except Exception as e:
+            error_handler(e)
     
-    async def _set_colors(self, bank: int, m_color: dict, cl_color: dict, s_color:dict):
-        await self.sc.set_color(bank, "color", m_color['red'], m_color['green'], m_color['blue'], m_color['white'])
-        await self.sc.set_color(bank, "clash", cl_color['red'], cl_color['green'], cl_color['blue'], cl_color['white'])
-        await self.sc.set_color(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white'])
-        await self.sc.set_active_bank(bank)
+    async def _set_colors(self, bank: int, m_color: dict, cl_color: dict, s_color:dict, w: QDialog = None):
+        try:
+            await sync_to_async(self.sc.set_color)(bank, "color", m_color['red'], m_color['green'], m_color['blue'], m_color['white'])
+            await sync_to_async(self.sc.set_color)(bank, "clash", cl_color['red'], cl_color['green'], cl_color['blue'], cl_color['white'])
+            await sync_to_async(self.sc.set_color)(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white'])
+            await sync_to_async(self.sc.set_active_bank)(bank)
+        except Exception as e:
+            error_handler(e)
+        finally:
+            AsyncioPySide6.runTask(self.reload_saber_configuration(w))
 
 # set icon for Windows - from https://www.pythonguis.com/tutorials/packaging-pyqt5-pyside2-applications-windows-pyinstaller/#building-a-windows-installer-with-installforge
 try:
