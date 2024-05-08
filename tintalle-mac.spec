@@ -28,7 +28,7 @@ exe = EXE(
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    target_arch='x86_64',
+    target_arch='universal2',
     codesign_identity=None,
     entitlements_file=None,
     icon=['img/tintalle.png'],
@@ -45,7 +45,7 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='Tintalle.app',
-    icon='tintalle.png',
+    icon='img/tintalle.png',
     bundle_identifier='com.sublunarysphere.tintalle',
     info_plist={
         'NSPrincipalClass': 'NSApplication',
