@@ -720,6 +720,7 @@
     </property>
     <addaction name="action_Show_Hide_Log"/>
     <addaction name="action_Debug_Mode"/>
+    <addaction name="action_Save_Log_to_File"/>
    </widget>
    <widget class="QMenu" name="menuFirmware">
     <property name="title">
@@ -807,6 +808,14 @@
    </property>
    <property name="text">
     <string>&amp;About Tintallë</string>
+   </property>
+  </action>
+  <action name="action_Save_Log_to_File">
+   <property name="icon">
+    <iconset theme="document-save"/>
+   </property>
+   <property name="text">
+    <string>Save Log to File...</string>
    </property>
   </action>
  </widget>

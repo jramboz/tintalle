@@ -18,6 +18,7 @@ from AsyncioPySide6 import AsyncioPySide6
 import asyncio
 import platform
 import resources_rc
+from datetime import datetime
 
 script_version = '0.1.1'
 script_authors = 'Jason Ramboz'
@@ -107,6 +108,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Debug_Mode.triggered.connect(self.debug_mode_handler)
         self.action_Reload_Config.triggered.connect(self.reload_config_action_handler)
         self.action_about.triggered.connect(self.about_action_handler)
+        self.action_Save_Log_to_File.triggered.connect(self.save_log_to_file_action_handler)
         
         self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
         self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
@@ -352,6 +354,24 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.log.setLevel(logging.INFO)
             if self.sc:
                 self.sc.log.setLevel(logging.INFO)
+    
+    def save_log_to_file_action_handler(self):
+        default = os.path.join(
+            os.path.expanduser('~'),
+            f'tintalle-{datetime.now().strftime('%m-%d-%Y-%H%M%S')}.log'
+        )
+        filename = QFileDialog.getSaveFileName(
+            self, 
+            'Save Log As...',
+            default,
+            'Log Files (*.log)')[0]
+        self.log.debug(f'Saving log output to file {filename}')
+        
+        try:
+            with open(filename, 'w') as file:
+                file.write(self.logTextBox.toPlainText())
+        except Exception as e:
+            error_handler(e)
 
     # --------------------------- #
     # Sound file handling methods #
