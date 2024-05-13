@@ -20,7 +20,7 @@ import platform
 import resources_rc
 from datetime import datetime
 
-script_version = '0.1.1'
+script_version = '0.2.0'
 script_authors = 'Jason Ramboz'
 script_repo = 'https://github.com/jramboz/tintalle'
 
