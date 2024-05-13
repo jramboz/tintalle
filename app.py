@@ -19,6 +19,7 @@ import asyncio
 import platform
 import resources_rc
 from datetime import datetime
+import json
 
 script_version = '0.2.0'
 script_authors = 'Jason Ramboz'
@@ -110,6 +111,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Reload_Config.triggered.connect(self.reload_config_action_handler)
         self.action_about.triggered.connect(self.about_action_handler)
         self.action_Save_Log_to_File.triggered.connect(self.save_log_to_file_action_handler)
+        self.action_Save_Anima_config_ini.triggered.connect(self.save_anima_config_ini_action_handler)
         
         self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
         self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
@@ -202,6 +204,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.content_tabWidget.setEnabled(True)
             self.action_Reload_Config.setEnabled(True)
             self.saber_select_box.setEnabled(False)
+            self.action_Save_Anima_config_ini.setEnabled(True)
         else: # disconnected
             # clear the contents
             self.clear_color_ui()
@@ -211,6 +214,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.content_tabWidget.setEnabled(False)
             self.action_Reload_Config.setEnabled(False)
             self.saber_select_box.setEnabled(True)
+            self.action_Save_Anima_config_ini.setEnabled(False)
 
     def connect_button_handler(self):
         if self.sc: # if connected, disconnect
@@ -371,6 +375,23 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         try:
             with open(filename, 'w') as file:
                 file.write(self.logTextBox.toPlainText())
+        except Exception as e:
+            error_handler(e)
+    
+    def save_anima_config_ini_action_handler(self):
+        default = os.path.join(
+            os.path.expanduser('~'),
+            'config.ini'
+        )
+        filename = QFileDialog.getSaveFileName(
+            self, 
+            'Save config.ini As...',
+            default)[0]
+        self.log.debug(f'Saving config.ini to file {filename}')
+
+        try:
+            with open(filename, 'w') as file:
+                file.write(json.dumps(self.saber_config, indent=2))
         except Exception as e:
             error_handler(e)
 

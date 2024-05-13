@@ -735,6 +735,13 @@
     </property>
     <addaction name="action_about"/>
    </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="action_Save_Anima_config_ini"/>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="menuConnection"/>
    <addaction name="menuFirmware"/>
    <addaction name="menuTroubleshooting"/>
@@ -816,6 +823,17 @@
    </property>
    <property name="text">
     <string>Save Log to File...</string>
+   </property>
+  </action>
+  <action name="action_Save_Anima_config_ini">
+   <property name="icon">
+    <iconset theme="document-page-setup"/>
+   </property>
+   <property name="text">
+    <string>Save Anima &amp;config.ini</string>
+   </property>
+   <property name="toolTip">
+    <string>Save a copy of the saber's current config.ini</string>
    </property>
   </action>
  </widget>

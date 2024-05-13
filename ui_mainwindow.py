@@ -61,6 +61,10 @@ class Ui_MainWindow(object):
         self.action_Save_Log_to_File.setObjectName(u"action_Save_Log_to_File")
         icon1 = QIcon(QIcon.fromTheme(u"document-save"))
         self.action_Save_Log_to_File.setIcon(icon1)
+        self.action_Save_Anima_config_ini = QAction(MainWindow)
+        self.action_Save_Anima_config_ini.setObjectName(u"action_Save_Anima_config_ini")
+        icon2 = QIcon(QIcon.fromTheme(u"document-page-setup"))
+        self.action_Save_Anima_config_ini.setIcon(icon2)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout_2 = QHBoxLayout(self.centralwidget)
@@ -478,11 +482,14 @@ class Ui_MainWindow(object):
         self.menuFirmware.setObjectName(u"menuFirmware")
         self.menuHelp = QMenu(self.menubar)
         self.menuHelp.setObjectName(u"menuHelp")
+        self.menuFile = QMenu(self.menubar)
+        self.menuFile.setObjectName(u"menuFile")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
 
+        self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuConnection.menuAction())
         self.menubar.addAction(self.menuFirmware.menuAction())
         self.menubar.addAction(self.menuTroubleshooting.menuAction())
@@ -495,6 +502,7 @@ class Ui_MainWindow(object):
         self.menuFirmware.addAction(self.action_Check_for_Latest_Firwmare)
         self.menuFirmware.addAction(self.action_Install_Firmware_from_File)
         self.menuHelp.addAction(self.action_about)
+        self.menuFile.addAction(self.action_Save_Anima_config_ini)
 
         self.retranslateUi(MainWindow)
 
@@ -523,6 +531,10 @@ class Ui_MainWindow(object):
         self.action_Install_Firmware_from_File.setText(QCoreApplication.translate("MainWindow", u"&Install Firmware from File...", None))
         self.action_about.setText(QCoreApplication.translate("MainWindow", u"&About Tintall\u00eb", None))
         self.action_Save_Log_to_File.setText(QCoreApplication.translate("MainWindow", u"Save Log to File...", None))
+        self.action_Save_Anima_config_ini.setText(QCoreApplication.translate("MainWindow", u"Save Anima &config.ini", None))
+#if QT_CONFIG(tooltip)
+        self.action_Save_Anima_config_ini.setToolTip(QCoreApplication.translate("MainWindow", u"Save a copy of the saber's current config.ini", None))
+#endif // QT_CONFIG(tooltip)
         self.connection_groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Port:", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Status:", None))
@@ -571,5 +583,6 @@ class Ui_MainWindow(object):
         self.menuTroubleshooting.setTitle(QCoreApplication.translate("MainWindow", u"Troubleshooting", None))
         self.menuFirmware.setTitle(QCoreApplication.translate("MainWindow", u"Firmware", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
+        self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
     # retranslateUi
 
