@@ -111,7 +111,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Reload_Config.triggered.connect(self.reload_config_action_handler)
         self.action_about.triggered.connect(self.about_action_handler)
         self.action_Save_Log_to_File.triggered.connect(self.save_log_to_file_action_handler)
-        self.action_Save_Anima_config_ini.triggered.connect(self.save_anima_config_ini_action_handler)
+        self.action_Export_Anima_config_ini.triggered.connect(self.export_anima_config_ini_action_handler)
         
         self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
         self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
@@ -378,7 +378,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         except Exception as e:
             error_handler(e)
     
-    def save_anima_config_ini_action_handler(self):
+    def export_anima_config_ini_action_handler(self):
         default = os.path.join(
             os.path.expanduser('~'),
             'config.ini'
