@@ -112,6 +112,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_about.triggered.connect(self.about_action_handler)
         self.action_Save_Log_to_File.triggered.connect(self.save_log_to_file_action_handler)
         self.action_Export_Anima_config_ini.triggered.connect(self.export_anima_config_ini_action_handler)
+        self.action_Save_Colors.triggered.connect(self.save_colors_action_handler)
+        self.action_Load_Colors.triggered.connect(self.load_colors_action_handler)
         
         self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
         self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
@@ -204,7 +206,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.content_tabWidget.setEnabled(True)
             self.action_Reload_Config.setEnabled(True)
             self.saber_select_box.setEnabled(False)
-            self.action_Save_Anima_config_ini.setEnabled(True)
+            self.action_Export_Anima_config_ini.setEnabled(True)
+            self.action_Save_Colors.setEnabled(True)
+            self.action_Load_Colors.setEnabled(True)
         else: # disconnected
             # clear the contents
             self.clear_color_ui()
@@ -214,7 +218,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.content_tabWidget.setEnabled(False)
             self.action_Reload_Config.setEnabled(False)
             self.saber_select_box.setEnabled(True)
-            self.action_Save_Anima_config_ini.setEnabled(False)
+            self.action_Export_Anima_config_ini.setEnabled(False)
+            self.action_Save_Colors.setEnabled(False)
+            self.action_Load_Colors.setEnabled(False)
 
     def connect_button_handler(self):
         if self.sc: # if connected, disconnect
@@ -389,11 +395,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             default)[0]
         self.log.debug(f'Saving config.ini to file {filename}')
 
-        try:
-            with open(filename, 'w') as file:
-                file.write(json.dumps(self.saber_config, indent=2))
-        except Exception as e:
-            error_handler(e)
+        if filename:
+            try:
+                with open(filename, 'w') as file:
+                    file.write(json.dumps(self.saber_config, indent=2))
+            except Exception as e:
+                error_handler(e)
 
     # --------------------------- #
     # Sound file handling methods #
@@ -629,10 +636,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def clear_color_ui(self):
         '''Clear and reset all color UI settings.'''
         self.color_bank_select_box.clear()
-        self.r_spinbox.setValue(0)
-        self.g_spinbox.setValue(0)
-        self.b_spinbox.setValue(0)
-        self.w_spinbox.setValue(0)
+        widgets = [self.r_spinbox, self.g_spinbox, self.b_spinbox, self.w_spinbox, self.r_slider, self.g_slider, self.b_slider, self.w_slider]
+        for widget in widgets:
+            widget.blockSignals(True)
+            widget.setValue(0)
+            widget.blockSignals(False)
+
         self.main_radioButton.setChecked(True)
         p = QApplication.palette()
         self.main_color_label.setPalette(p)
@@ -745,6 +754,46 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             error_handler(e)
         finally:
             AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+    
+    def save_colors_action_handler(self):
+        default = os.path.join(
+            os.path.expanduser('~'),
+            'saber_colors.txt'
+        )
+        filename = QFileDialog.getSaveFileName(
+            self, 
+            'Save Colors As...',
+            default)[0]
+        self.log.debug(f'Saving colors to file {filename}')
+
+        if filename:
+            color_dict = {}
+            color_dict['activeBank'] = self.current_config['activeBank']
+            color_dict['bank'] = self.current_config['bank']
+            
+            try:
+                with open(filename, 'w') as file:
+                    file.write(json.dumps(color_dict, indent=2))
+                self.log.info(f'Saved colors to file: {filename}')
+            except Exception as e:
+                error_handler(e)
+    
+    def load_colors_action_handler(self):
+        filename = QFileDialog.getOpenFileName(
+            self,
+            'Load Colors From...',
+            os.path.expanduser('~')
+        )[0]
+
+        if filename:
+            try:
+                with open(filename) as file:
+                    color_dict = json.loads(file.read())
+                    self.current_config['activeBank'] = color_dict['activeBank']
+                    self.current_config['bank'] = color_dict['bank']
+                    self.update_ui_with_config()
+            except (json.JSONDecodeError, KeyError):
+                error_handler(f'File "{filename}" does not appear to be a valid color file.')
 
 # set icon for Windows - from https://www.pythonguis.com/tutorials/packaging-pyqt5-pyside2-applications-windows-pyinstaller/#building-a-windows-installer-with-installforge
 try:
