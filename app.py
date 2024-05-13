@@ -51,6 +51,7 @@ class Upload_Controller():
         self.log.debug(f'File path: {file}')
         self.display.fileNameLabel.setText(f'File: {os.path.basename(file)}')
 
+        self.display.fileProgressBar.setValue(0)
         self.display.set_file_size(os.path.getsize(file))
         worker = Worker(self.sc.write_files_to_saber, [file])
         worker.signals.progress.connect(self.display.fileProgressBar.setValue)
