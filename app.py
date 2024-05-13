@@ -368,11 +368,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             'Log Files (*.log)')[0]
         self.log.debug(f'Saving log output to file {filename}')
         
-        try:
-            with open(filename, 'w') as file:
-                file.write(self.logTextBox.toPlainText())
-        except Exception as e:
-            error_handler(e)
+        if filename:
+            try:
+                with open(filename, 'w') as file:
+                    file.write(self.logTextBox.toPlainText())
+            except Exception as e:
+                error_handler(e)
 
     # --------------------------- #
     # Sound file handling methods #
