@@ -336,8 +336,21 @@
              </item>
              <item>
               <widget class="QPushButton" name="color_save_button">
+               <property name="toolTip">
+                <string>Save the currently displayed bank to the saber</string>
+               </property>
                <property name="text">
                 <string>Save Bank to Saber</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="save_all_banks_button">
+               <property name="toolTip">
+                <string>Save all color banks to saber</string>
+               </property>
+               <property name="text">
+                <string>Save All Banks to Saber</string>
                </property>
               </widget>
              </item>

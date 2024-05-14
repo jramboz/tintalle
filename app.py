@@ -134,6 +134,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         
         self.reset_color_changes_button.clicked.connect(self.reload_config_action_handler)
         self.color_save_button.clicked.connect(self.color_save_button_handler)
+        self.save_all_banks_button.clicked.connect(self.save_all_colors_button_handler)
         self.preview_color_button.clicked.connect(self.preview_button_handler)
         self.erase_button.clicked.connect(self.erase_button_handler)
         self.upload_button.clicked.connect(self.upload_button_handler)
@@ -732,28 +733,37 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         w = Loading_Box(self, "Saving configuration to saber.")
         w.show()
 
-        i = self.color_bank_select_box.currentIndex()
-        self.log.info(f'Saving color bank #{i+1} to saber.')
-        m_color = self.current_config['bank'][i]['color']
-        cl_color = self.current_config['bank'][i]['clash']
-        s_color = self.current_config['bank'][i]['swing']
+        AsyncioPySide6.runTask(self.save_color_bank(self.color_bank_select_box.currentIndex(), w, True))
+
+    def save_all_colors_button_handler(self):
+        '''Write the values of all banks to the saber.'''
+        w = Loading_Box(self, "Saving configuration to saber.")
+        w.show()
+
+        count = self.color_bank_select_box.count()
+        for i in range(count):
+            AsyncioPySide6.runTask(self.save_color_bank(i, w, i == count-1))
+
+    async def save_color_bank(self, bank: int, w: QDialog = None, refresh: bool = False):
+        self.log.info(f'Saving color bank #{bank+1} to saber.')
+        m_color = self.current_config['bank'][bank]['color']
+        cl_color = self.current_config['bank'][bank]['clash']
+        s_color = self.current_config['bank'][bank]['swing']
         self.log.debug(f'Main color: {m_color}\nClash color: {cl_color}\nSwing color: {s_color}')
 
+        await self._set_colors(bank, m_color, cl_color, s_color, w, refresh)
+
+    async def _set_colors(self, bank: int, m_color: dict, cl_color: dict, s_color:dict, w: QDialog = None, refresh: bool = False):
         try:
-            AsyncioPySide6.runTask(self._set_colors(i, m_color, cl_color, s_color, w))
-        except Exception as e:
-            error_handler(e)
-    
-    async def _set_colors(self, bank: int, m_color: dict, cl_color: dict, s_color:dict, w: QDialog = None):
-        try:
-            await sync_to_async(self.sc.set_color)(bank, "color", m_color['red'], m_color['green'], m_color['blue'], m_color['white'])
-            await sync_to_async(self.sc.set_color)(bank, "clash", cl_color['red'], cl_color['green'], cl_color['blue'], cl_color['white'])
-            await sync_to_async(self.sc.set_color)(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white'])
-            await sync_to_async(self.sc.set_active_bank)(bank)
+            AsyncioPySide6.runTask(sync_to_async(self.sc.set_color)(bank, "color", m_color['red'], m_color['green'], m_color['blue'], m_color['white']))
+            AsyncioPySide6.runTask(sync_to_async(self.sc.set_color)(bank, "clash", cl_color['red'], cl_color['green'], cl_color['blue'], cl_color['white']))
+            AsyncioPySide6.runTask(sync_to_async(self.sc.set_color)(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white']))
+            AsyncioPySide6.runTask(sync_to_async(self.sc.set_active_bank)(bank))
         except Exception as e:
             error_handler(e)
         finally:
-            AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+            if refresh:
+                AsyncioPySide6.runTask(self.reload_saber_configuration(w))
     
     def save_colors_action_handler(self):
         default = os.path.join(

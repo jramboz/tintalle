@@ -266,6 +266,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.color_save_button)
 
+        self.save_all_banks_button = QPushButton(self.controls_groupbox)
+        self.save_all_banks_button.setObjectName(u"save_all_banks_button")
+
+        self.verticalLayout.addWidget(self.save_all_banks_button)
+
         self.preview_color_button = QPushButton(self.controls_groupbox)
         self.preview_color_button.setObjectName(u"preview_color_button")
 
@@ -567,7 +572,14 @@ class Ui_MainWindow(object):
         self.controls_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Controls", None))
         self.color_bank_select_box.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Color Bank", None))
         self.reset_color_changes_button.setText(QCoreApplication.translate("MainWindow", u"Reset Changes", None))
+#if QT_CONFIG(tooltip)
+        self.color_save_button.setToolTip(QCoreApplication.translate("MainWindow", u"Save the currently displayed bank to the saber", None))
+#endif // QT_CONFIG(tooltip)
         self.color_save_button.setText(QCoreApplication.translate("MainWindow", u"Save Bank to Saber", None))
+#if QT_CONFIG(tooltip)
+        self.save_all_banks_button.setToolTip(QCoreApplication.translate("MainWindow", u"Save all color banks to saber", None))
+#endif // QT_CONFIG(tooltip)
+        self.save_all_banks_button.setText(QCoreApplication.translate("MainWindow", u"Save All Banks to Saber", None))
         self.preview_color_button.setText(QCoreApplication.translate("MainWindow", u"Preview Color on Saber", None))
         self.effect_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Effect Select", None))
         self.main_radioButton.setText(QCoreApplication.translate("MainWindow", u"Main", None))
