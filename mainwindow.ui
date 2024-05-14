@@ -336,8 +336,21 @@
              </item>
              <item>
               <widget class="QPushButton" name="color_save_button">
+               <property name="toolTip">
+                <string>Save the currently displayed bank to the saber</string>
+               </property>
                <property name="text">
                 <string>Save Bank to Saber</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="save_all_banks_button">
+               <property name="toolTip">
+                <string>Save all color banks to saber</string>
+               </property>
+               <property name="text">
+                <string>Save All Banks to Saber</string>
                </property>
               </widget>
              </item>
@@ -735,6 +748,15 @@
     </property>
     <addaction name="action_about"/>
    </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="action_Export_Anima_config_ini"/>
+    <addaction name="action_Save_Colors"/>
+    <addaction name="action_Load_Colors"/>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="menuConnection"/>
    <addaction name="menuFirmware"/>
    <addaction name="menuTroubleshooting"/>
@@ -816,6 +838,45 @@
    </property>
    <property name="text">
     <string>Save Log to File...</string>
+   </property>
+  </action>
+  <action name="action_Export_Anima_config_ini">
+   <property name="icon">
+    <iconset theme="document-page-setup"/>
+   </property>
+   <property name="text">
+    <string>Export Anima &amp;config.ini...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save a copy of the saber's current config.ini</string>
+   </property>
+  </action>
+  <action name="action_Save_Colors">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="document-save"/>
+   </property>
+   <property name="text">
+    <string>Save Colors...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save color banks to a file for later use</string>
+   </property>
+  </action>
+  <action name="action_Load_Colors">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
+   <property name="text">
+    <string>Load Colors...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load color banks from file</string>
    </property>
   </action>
  </widget>
