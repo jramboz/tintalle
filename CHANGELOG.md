@@ -1,5 +1,14 @@
 # Tintallë Changelog
 
+## v0.3.0
+## New Features
+- Save and load colors to file
+- Save all color banks
+- Export Anima's config.ini to file
+
+## Bug Fixes
+- Error windows were sometimes not being displayed
+
 ## v0.2.0
 ### New Features
 - Automatically add BEEP.RAW for Anima NXTs (if it is not already specified or present on saber)
