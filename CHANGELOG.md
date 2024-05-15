@@ -8,6 +8,7 @@
 
 ## Bug Fixes
 - Error windows were sometimes not being displayed
+- Use explicit `SAVE` command after setting colors and sound effects. Hopefully this will improve stability.
 
 ## v0.2.0
 ### New Features
