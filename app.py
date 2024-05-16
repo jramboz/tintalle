@@ -572,7 +572,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     
     async def auto_assign_effects(self):
         '''Automatically assign sound files to effects for the files currently on the saber.'''
-        w = Loading_Box(self, "Automatically setting sound effects based on the default naming scheme.")
+        w = Loading_Box(self, "Automatically setting sound effects\nbased on the default naming scheme.")
         w.show()
 
         self.log.info('Automatically assigning sound files to effects based on the default naming scheme.')
