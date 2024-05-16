@@ -553,6 +553,13 @@
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="auto_assign_effects_button">
+               <property name="text">
+                <string>Auto Assign Effects</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="verticalSpacer_3">
                <property name="orientation">
                 <enum>Qt::Orientation::Vertical</enum>
@@ -877,6 +884,11 @@
    </property>
    <property name="toolTip">
     <string>Load color banks from file</string>
+   </property>
+  </action>
+  <action name="action_Export_current_config">
+   <property name="text">
+    <string>Export current config</string>
    </property>
   </action>
  </widget>

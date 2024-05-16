@@ -35,10 +35,11 @@ class SCStatus(Enum):
 
 class Upload_Controller():
     '''Tracks state for mutli-file uploads.'''
-    def __init__(self, files: list[str], display: File_Upload_Progress_Dialog, sc: Saber_Controller):
+    def __init__(self, files: list[str], display: File_Upload_Progress_Dialog, sc: Saber_Controller, set_effects: bool = True):
         self.files = files
         self.display = display
         self.sc = sc
+        self.set_effects = set_effects
         self.log = logging.getLogger()
         self.threadpool = QtCore.QThreadPool()
 
@@ -66,8 +67,11 @@ class Upload_Controller():
 
         if self.display.halt or len(self.files) == 0: #user has clicked cancel button or no more files left
             self.display.upload_complete()
-            # this is kind of a hack and not great software design, but with the callbacks and all this seems to tbe the best place to put the reload
-            AsyncioPySide6.runTask(self.display.parent().reload_saber_configuration())
+            if self.set_effects:
+                AsyncioPySide6.runTask(self.display.parent().auto_assign_effects())
+            else:
+                # this is kind of a hack and not great software design, but with the callbacks and all this seems to tbe the best place to put the reload
+                AsyncioPySide6.runTask(self.display.parent().reload_saber_configuration())
         else:
             self._upload_next_file()
         
@@ -140,6 +144,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.upload_button.clicked.connect(self.upload_button_handler)
         self.sound_save_button.clicked.connect(self.sound_save_button_handler)
         self.reset_sound_changes_button.clicked.connect(self.reload_config_action_handler)
+        self.auto_assign_effects_button.clicked.connect(self.auto_assign_effects_button_handler)
 
         self.files_treeWidget.itemSelectionChanged.connect(self.set_effects_checkboxes)
 
@@ -408,6 +413,25 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                     file.write(json.dumps(self.saber_config, indent=2))
             except Exception as e:
                 error_handler(e)
+    
+    # Decided not to use this feature. Keeping the code here in case I change my mind later.
+    # def export_current_config_action_handler(self):
+    #     default = os.path.join(
+    #         os.path.expanduser('~'),
+    #         'config.ini'
+    #     )
+    #     filename = QFileDialog.getSaveFileName(
+    #         self, 
+    #         'Save config.ini As...',
+    #         default)[0]
+    #     self.log.debug(f'Saving config.ini to file {filename}')
+
+    #     if filename:
+    #         try:
+    #             with open(filename, 'w') as file:
+    #                 file.write(json.dumps(self.current_config, indent=2))
+    #         except Exception as e:
+    #             error_handler(e)
 
     # --------------------------- #
     # Sound file handling methods #
@@ -536,15 +560,30 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         w = Loading_Box(self, "Saving configuration to saber.")
         w.show()
 
-        async def _save_sound_settings(self: Main_Window, w: QDialog):
-            for effect, files in self.current_config['sounds'].items():
-                if effect == 'soundengine': continue
-                self.log.info(f'Setting sounds for effect: {effect}')
-                self.sc.set_sounds_for_effect(effect, files)
-                await asyncio.sleep(1)
-            AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+        AsyncioPySide6.runTask(self._save_sound_settings(w))
 
-        AsyncioPySide6.runTask(_save_sound_settings(self, w))
+    async def _save_sound_settings(self, w: QDialog):
+        for effect, files in self.current_config['sounds'].items():
+            if effect == 'soundengine': continue
+            self.log.info(f'Setting sounds for effect: {effect}')
+            self.sc.set_sounds_for_effect(effect, files)
+            await asyncio.sleep(1)
+        AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+    
+    async def auto_assign_effects(self):
+        '''Automatically assign sound files to effects for the files currently on the saber.'''
+        w = Loading_Box(self, "Automatically setting sound effects based on the default naming scheme.")
+        w.show()
+
+        self.log.info('Automatically assigning sound files to effects based on the default naming scheme.')
+        await sync_to_async(self.sc.auto_assign_sound_effects)()
+        await asyncio.sleep(2)
+        w.close()
+
+        AsyncioPySide6.runTask(self.reload_saber_configuration())
+    
+    def auto_assign_effects_button_handler(self):
+        AsyncioPySide6.runTask(self.auto_assign_effects())
 
     # ------------------------- #
     # Firmware handling methods #

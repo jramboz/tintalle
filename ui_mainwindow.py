@@ -74,6 +74,8 @@ class Ui_MainWindow(object):
         self.action_Load_Colors.setEnabled(False)
         icon3 = QIcon(QIcon.fromTheme(u"document-open"))
         self.action_Load_Colors.setIcon(icon3)
+        self.action_Export_current_config = QAction(MainWindow)
+        self.action_Export_current_config.setObjectName(u"action_Export_current_config")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout_2 = QHBoxLayout(self.centralwidget)
@@ -404,6 +406,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.sound_save_button)
 
+        self.auto_assign_effects_button = QPushButton(self.files_groupbox)
+        self.auto_assign_effects_button.setObjectName(u"auto_assign_effects_button")
+
+        self.verticalLayout_3.addWidget(self.auto_assign_effects_button)
+
         self.verticalSpacer_3 = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_3.addItem(self.verticalSpacer_3)
@@ -559,6 +566,7 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.action_Load_Colors.setToolTip(QCoreApplication.translate("MainWindow", u"Load color banks from file", None))
 #endif // QT_CONFIG(tooltip)
+        self.action_Export_current_config.setText(QCoreApplication.translate("MainWindow", u"Export current config", None))
         self.connection_groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Port:", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Status:", None))
@@ -600,6 +608,7 @@ class Ui_MainWindow(object):
         self.files_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Files", None))
         self.reset_sound_changes_button.setText(QCoreApplication.translate("MainWindow", u"Reset Changes", None))
         self.sound_save_button.setText(QCoreApplication.translate("MainWindow", u"Save Changes", None))
+        self.auto_assign_effects_button.setText(QCoreApplication.translate("MainWindow", u"Auto Assign Effects", None))
         self.erase_button.setText(QCoreApplication.translate("MainWindow", u"Erase Sounds", None))
         self.upload_button.setText(QCoreApplication.translate("MainWindow", u"Upload Files", None))
         self.freespace_label.setText(QCoreApplication.translate("MainWindow", u"Free Space: --- MB", None))
