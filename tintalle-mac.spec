@@ -50,6 +50,6 @@ app = BUNDLE(
     info_plist={
         'NSPrincipalClass': 'NSApplication',
         'NSAppleScriptEnabled': False,
-        "CFBundleShortVersionString":"0.3.0",
+        "CFBundleShortVersionString":"0.4.0",
     }
 )
