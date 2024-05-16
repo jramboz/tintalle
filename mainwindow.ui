@@ -53,6 +53,19 @@
           <widget class="QComboBox" name="saber_select_box"/>
          </item>
          <item>
+          <widget class="QPushButton" name="refresh_ports_button">
+           <property name="toolTip">
+            <string>Refresh Ports List</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset theme="view-refresh"/>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>
@@ -890,7 +903,24 @@
  <resources>
   <include location="resources.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>refresh_ports_button</sender>
+   <signal>clicked()</signal>
+   <receiver>action_Refresh_Ports</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>200</x>
+     <y>101</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <buttongroups>
   <buttongroup name="effects_buttonGroup">
    <property name="exclusive">

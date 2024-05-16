@@ -101,6 +101,13 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.saber_select_box)
 
+        self.refresh_ports_button = QPushButton(self.connection_groupBox)
+        self.refresh_ports_button.setObjectName(u"refresh_ports_button")
+        icon4 = QIcon(QIcon.fromTheme(u"view-refresh"))
+        self.refresh_ports_button.setIcon(icon4)
+
+        self.horizontalLayout.addWidget(self.refresh_ports_button)
+
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
@@ -521,6 +528,7 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.action_Load_Colors)
 
         self.retranslateUi(MainWindow)
+        self.refresh_ports_button.clicked.connect(self.action_Refresh_Ports.trigger)
 
         self.content_tabWidget.setCurrentIndex(0)
 
@@ -561,6 +569,10 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.connection_groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Port:", None))
+#if QT_CONFIG(tooltip)
+        self.refresh_ports_button.setToolTip(QCoreApplication.translate("MainWindow", u"Refresh Ports List", None))
+#endif // QT_CONFIG(tooltip)
+        self.refresh_ports_button.setText("")
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Status:", None))
         self.status_label.setText(QCoreApplication.translate("MainWindow", u"Searching...", None))
         self.connect_button.setText(QCoreApplication.translate("MainWindow", u"Connect", None))
