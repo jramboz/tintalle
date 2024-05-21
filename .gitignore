@@ -1,7 +1,7 @@
-/.DS_Store
+.DS_Store
 /.ropeproject
 /.vscode
-/__pycache__
+__pycache__
 /py2saber
 /*.hex
 config.json

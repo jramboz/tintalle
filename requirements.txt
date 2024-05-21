@@ -5,3 +5,4 @@ wget
 asgiref
 AsyncioPySide6
 pydub
+pyusb
