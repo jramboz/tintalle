@@ -465,7 +465,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             def e(error: tuple):
                 '''What to do with an error.'''
                 pd.report("An error has occurred. See the log for details.")
-                error_handler(e, parent=self)
+                error_handler(error, parent=self)
 
             def r(obj: object):
                 '''What to do with task result.'''
