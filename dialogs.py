@@ -18,9 +18,10 @@ class Progress_Dialog(QDialog):
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowTitleHint)
         self.reportLabel = QLabel()
         self.progressBar = QProgressBar()
+        self.messageLabel = QLabel(message)
 
         self.layout = QVBoxLayout()
-        self.layout.addWidget(QLabel(message))
+        self.layout.addWidget(self.messageLabel)
         self.layout.addWidget(self.progressBar)
         self.layout.addWidget(self.reportLabel)
         if not autoclose:
