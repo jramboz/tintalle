@@ -754,6 +754,8 @@
     <addaction name="action_Show_Hide_Log"/>
     <addaction name="action_Debug_Mode"/>
     <addaction name="action_Save_Log_to_File"/>
+    <addaction name="separator"/>
+    <addaction name="action_Reset_Saber_to_Defaults"/>
    </widget>
    <widget class="QMenu" name="menuFirmware">
     <property name="title">
@@ -902,6 +904,17 @@
   <action name="action_Export_current_config">
    <property name="text">
     <string>Export current config</string>
+   </property>
+  </action>
+  <action name="action_Reset_Saber_to_Defaults">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Reset Saber to Defaults</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset saber to original default settings and sounds</string>
    </property>
   </action>
  </widget>
