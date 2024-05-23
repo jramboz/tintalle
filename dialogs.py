@@ -60,7 +60,7 @@ class External_Process_Dialog(Progress_Dialog):
 class File_Upload_Progress_Dialog(QDialog):
     halt = False # set to True to cancel after the curent file is finished uploading
 
-    def __init__(self, parent = None, multifile=False):
+    def __init__(self, parent = None, multifile=False, autoclose: bool = False):
         super().__init__(parent)
         self.buttonBox = QDialogButtonBox(QDialogButtonBox.Cancel)
         self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.cancel_button_handler)
@@ -85,6 +85,7 @@ class File_Upload_Progress_Dialog(QDialog):
         
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
+        self.autoclose = autoclose
     
     def set_num_files(self, num_files: int):
         '''Set the number of fiiles to be uploaded in this batch.'''
@@ -110,11 +111,14 @@ class File_Upload_Progress_Dialog(QDialog):
     
     def upload_complete(self):
         '''Call this when all file uploads are completed and the window can be closed.'''
-        self.buttonBox.button(QDialogButtonBox.Cancel).setEnabled(True)
-        self.buttonBox.button(QDialogButtonBox.Cancel).setText('Close')
-        self.buttonBox.button(QDialogButtonBox.Cancel).clicked.disconnect()
-        self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
-        self.fileNameLabel.setText('Upload complete!')
+        if self.autoclose:
+            self.close()
+        else:
+            self.buttonBox.button(QDialogButtonBox.Cancel).setEnabled(True)
+            self.buttonBox.button(QDialogButtonBox.Cancel).setText('Close')
+            self.buttonBox.button(QDialogButtonBox.Cancel).clicked.disconnect()
+            self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
+            self.fileNameLabel.setText('Upload complete!')
         logging.getLogger().info('Upload complete!')
 
 class Loading_Box(QDialog):
