@@ -587,6 +587,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             box.setChecked(False)
             box.blockSignals(False)
         self.files_treeWidget.clear()
+        self.freespace_label.setText('Free Space: ----')
+        self.usedspace_label.setText('Used Space: ----')
+        self.totalspace_label.setText('Total Space: ----')
 
     @staticmethod
     def get_effect_for_checkBox(box: QCheckBox) -> str:
