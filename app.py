@@ -377,6 +377,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         )
 
         if button == QMessageBox.Yes:
+            self.clear_color_ui()
+            self.clear_sound_ui()
             AsyncioPySide6.runTask(self._reset_to_defaults())
 
     async def _reset_to_defaults(self):
