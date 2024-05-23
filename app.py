@@ -398,7 +398,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         
         def f():
             pd.finished()
-            AsyncioPySide6.runTask(self._upload_default_files())
+            self._upload_default_files()
 
         worker.signals.finished.connect(f)
         self.threadpool.start(worker)
