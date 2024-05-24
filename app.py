@@ -3,7 +3,7 @@ from PySide6.QtGui import QColor, QPixmap, QIcon, QColorConstants
 import PySide6.QtCore as QtCore
 from PySide6.QtCore import Qt
 from ui_mainwindow import Ui_MainWindow
-from py2saber import Saber_Controller, NoAnimaSaberException
+from py2saber import Saber_Controller, NoAnimaSaberException, InvalidSaberResponseException
 from threadrunner import *
 from dialogs import *
 import version_compare as vc
@@ -20,6 +20,7 @@ import platform
 import resources_rc
 from datetime import datetime
 import json
+import glob
 
 script_version = '0.4.0'
 script_authors = 'Jason Ramboz'
@@ -35,16 +36,25 @@ class SCStatus(Enum):
 
 class Upload_Controller():
     '''Tracks state for mutli-file uploads.'''
-    def __init__(self, files: list[str], display: File_Upload_Progress_Dialog, sc: Saber_Controller, set_effects: bool = True):
+    def __init__(self, files: list[str], sc: Saber_Controller, set_effects: bool = True, reload_config: bool = True, autoclose: bool = False, parent: QWidget = None):
         self.files = files
-        self.display = display
         self.sc = sc
         self.set_effects = set_effects
+        self.reload_config = reload_config
         self.log = logging.getLogger()
         self.threadpool = QtCore.QThreadPool()
+        self.finished_action: callable = None
+        # Create the file upload progress dialog
+        if len(files) == 1:
+            self.display = File_Upload_Progress_Dialog(parent=parent, autoclose=autoclose)
+        else:
+            self.display = File_Upload_Progress_Dialog(parent=parent, multifile=True, autoclose=autoclose)
+            self.display.set_num_files(len(files))
+        self.display.show()
 
     def run(self):
         '''Initiate file upload.'''
+        self.display.show()
         self._upload_next_file()
 
     def _upload_next_file(self):
@@ -68,10 +78,13 @@ class Upload_Controller():
         if self.display.halt or len(self.files) == 0: #user has clicked cancel button or no more files left
             self.display.upload_complete()
             if self.set_effects:
-                AsyncioPySide6.runTask(self.display.parent().auto_assign_effects())
+                AsyncioPySide6.runTask(self.display.parent().auto_assign_effects(reload_config=self.reload_config))
             else:
                 # this is kind of a hack and not great software design, but with the callbacks and all this seems to tbe the best place to put the reload
-                AsyncioPySide6.runTask(self.display.parent().reload_saber_configuration())
+                if self.reload_config:
+                    AsyncioPySide6.runTask(self.display.parent().reload_saber_configuration())
+                else:
+                    AsyncioPySide6.runTask(self.finished_action())
         else:
             self._upload_next_file()
         
@@ -118,6 +131,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Export_Anima_config_ini.triggered.connect(self.export_anima_config_ini_action_handler)
         self.action_Save_Colors.triggered.connect(self.save_colors_action_handler)
         self.action_Load_Colors.triggered.connect(self.load_colors_action_handler)
+        self.action_Reset_Saber_to_Defaults.triggered.connect(self.reset_saber_to_defaults_action_handler)
         
         self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
         self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
@@ -215,6 +229,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.action_Refresh_Ports.setEnabled(False)
             self.refresh_ports_button.setEnabled(False)
             self.action_Export_Anima_config_ini.setEnabled(True)
+            self.action_Reset_Saber_to_Defaults.setEnabled(True)
             self.action_Save_Colors.setEnabled(True)
             self.action_Load_Colors.setEnabled(True)
         else: # disconnected
@@ -229,6 +244,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.action_Refresh_Ports.setEnabled(True)
             self.refresh_ports_button.setEnabled(True)
             self.action_Export_Anima_config_ini.setEnabled(False)
+            self.action_Reset_Saber_to_Defaults.setEnabled(False)
             self.action_Save_Colors.setEnabled(False)
             self.action_Load_Colors.setEnabled(False)
 
@@ -356,6 +372,68 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         if button == QMessageBox.Yes:
             AsyncioPySide6.runTask(self.reload_saber_configuration())
 
+    def reset_saber_to_defaults_action_handler(self):
+        button = QMessageBox.warning(
+            self,
+            "Reset to Defaults?",
+            "WARNING! This will erase the saber and reset it to its default configuration. This includes any custom colors and sound fonts.\n\nDo you want to continue?",
+            buttons=QMessageBox.Yes | QMessageBox.No,
+            defaultButton=QMessageBox.No
+        )
+
+        if button == QMessageBox.Yes:
+            self.clear_color_ui()
+            self.clear_sound_ui()
+            AsyncioPySide6.runTask(self._reset_to_defaults())
+
+    async def _reset_to_defaults(self):
+        self.log.info('Resetting saber to default configuration.')
+        pd = Progress_Dialog(self, "Resetting Saber", 'Erasing files...', autoclose=True)
+        pd.show()
+
+        self.log.info("Erasing all files on connected saber.")
+        worker = Worker(self.sc.erase_all_files)
+        worker.signals.progress.connect(pd.progressBar.setValue)
+        worker.signals.error.connect(error_handler)
+        
+        def f():
+            pd.finished()
+            self._upload_default_files()
+
+        worker.signals.finished.connect(f)
+        self.threadpool.start(worker)
+
+    async def _send_reset_cmd(self):
+        pd = Progress_Dialog(self, "Resetting Saber", 'Sending RESET and SAVE commands.', autoclose=True)
+        self.log.info('Sending reset commands')
+        pd.progressBar.setValue(0)
+        pd.progressBar.setMaximum(100)
+        pd.show()
+        self.sc.send_command(b'RESET')
+        result = await sync_to_async(self.sc.read_line)()
+        if result != b'OK RESET\n':
+            raise InvalidSaberResponseException(f'Command: RESET\nResponse: {result}')
+        pd.progressBar.setValue(50)
+        self.sc.send_command(b'SAVE')
+        result = await sync_to_async(self.sc.read_line)()
+        if result != b'OK SAVE\n':
+            raise InvalidSaberResponseException(f'Command: SAVE\nResponse: {result}')
+        pd.progressBar.setValue(100)
+        pd.finished()
+        QMessageBox.information(self, "Saber Reset", "Reset complete!")
+        AsyncioPySide6.runTask(self.reload_saber_configuration())
+
+    def _upload_default_files(self):
+        self.log.info('Uploading default sound font.')
+        files = glob.glob(os.path.join(os.getcwd(), 'OpenCore_OEM', '*.RAW'))
+        files.sort()
+        self.uc = Upload_Controller(files, self.sc, set_effects=False, reload_config=False, autoclose=True, parent=self)
+        self.uc.finished_action = self._send_reset_cmd
+        try:
+            self.uc.run()
+        except Exception as e:
+            error_handler(e, parent=self)
+
     # ------------------------- #
     # Logging and debug methods #
     # ------------------------- #
@@ -451,54 +529,53 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         )
 
         if button == QMessageBox.Ok:
-            self.log.info("Erasing all files on connected saber.")
-            
-            #set up thread
-            pd = Progress_Dialog(parent=self, title="Erasing Saber", message="Erasing all sound files on saber.")
-            worker = Worker(self.sc.erase_all_files)
+            self._erase_all()
 
-            def f():
-                '''Actions to do when task is finished.'''
-                pd.finished()
+    def _erase_all(self, reload_config: bool = True):
+        self.log.info("Erasing all files on connected saber.")
+        
+        #set up thread
+        pd = Progress_Dialog(parent=self, title="Erasing Saber", message="Erasing all sound files on saber.", autoclose=not reload_config)
+        worker = Worker(self.sc.erase_all_files)
+
+        def f():
+            '''Actions to do when task is finished.'''
+            pd.finished()
+            if reload_config:
                 AsyncioPySide6.runTask(self.reload_saber_configuration())
 
-            def e(error: tuple):
-                '''What to do with an error.'''
-                pd.report("An error has occurred. See the log for details.")
-                error_handler(error, parent=self)
+        def e(error: tuple):
+            '''What to do with an error.'''
+            pd.report("An error has occurred. See the log for details.")
+            error_handler(error, parent=self)
 
-            def r(obj: object):
-                '''What to do with task result.'''
-                pd.report("All sound files on saber have been erased.\nPlease re-load your sound files.")
-                self.log.info("All sound files on saber have been erased. Please re-load your sound files.")
+        def r(obj: object):
+            '''What to do with task result.'''
+            pd.report("All sound files on saber have been erased.\nPlease re-load your sound files.")
+            self.log.info("All sound files on saber have been erased. Please re-load your sound files.")
 
-            worker.signals.finished.connect(f)
-            worker.signals.error.connect(e)
-            worker.signals.result.connect(r)
-            worker.signals.progress.connect(pd.progressBar.setValue)
+        worker.signals.finished.connect(f)
+        worker.signals.error.connect(e)
+        worker.signals.result.connect(r)
+        worker.signals.progress.connect(pd.progressBar.setValue)
 
-            # execute thread and show progress dialog
-            pd.show()
-            self.threadpool.start(worker)
+        # execute thread and show progress dialog
+        pd.show()
+        self.threadpool.start(worker)
 
     uc: Upload_Controller = None
     def upload_button_handler(self):
         # Get a list of files to upload. Can be one file or multiple files
         files = QFileDialog.getOpenFileNames(self, filter="RAW Sound File (*.RAW)")[0]
+        files.sort()
+        if self.anima_is_NXT() and not any("BEEP.RAW" in file for file in files) and 'BEEP.RAW' not in self.files_dict.keys():
+            self.log.info('NXT saber detected and no BEEP.RAW provided. Adding default BEEP.RAW.')
+            files.insert(0, os.path.join(basedir, 'OpenCore_OEM', 'BEEP.RAW'))
         self.log.debug(f'List of files to upload: {files}')
         
         if(files):
-            # Create the file upload progress dialog
-            if len(files) == 1:
-                display = File_Upload_Progress_Dialog(parent=self)
-            else:
-                display = File_Upload_Progress_Dialog(parent=self, multifile=True)
-                display.set_num_files(len(files))
-            display.show()
-            
             # Create and run the upload controller
-            self.uc = Upload_Controller(files, display, self.sc)
-            #TODO: Use worker to run in thread, then refresh files display when finished
+            self.uc = Upload_Controller(files, self.sc, set_effects=True, parent=self)
             try:
                 self.uc.run()
             except Exception as e:
@@ -510,6 +587,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             box.setChecked(False)
             box.blockSignals(False)
         self.files_treeWidget.clear()
+        self.freespace_label.setText('Free Space: ----')
+        self.usedspace_label.setText('Used Space: ----')
+        self.totalspace_label.setText('Total Space: ----')
 
     @staticmethod
     def get_effect_for_checkBox(box: QCheckBox) -> str:
@@ -574,7 +654,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             await asyncio.sleep(1)
         AsyncioPySide6.runTask(self.reload_saber_configuration(w))
     
-    async def auto_assign_effects(self):
+    async def auto_assign_effects(self, reload_config:bool = True):
         '''Automatically assign sound files to effects for the files currently on the saber.'''
         w = Loading_Box(self, "Automatically setting sound effects\nbased on the default naming scheme.")
         w.show()
@@ -584,7 +664,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         await asyncio.sleep(2)
         w.close()
 
-        AsyncioPySide6.runTask(self.reload_saber_configuration())
+        if reload_config:
+            AsyncioPySide6.runTask(self.reload_saber_configuration())
     
     def auto_assign_effects_button_handler(self):
         AsyncioPySide6.runTask(self.auto_assign_effects())
