@@ -10,9 +10,10 @@ from dialogs import *
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QFileDialog, QMessageBox
 # dfu and pydfu are borrowed (with some modifications) from stm32tool: https://github.com/kabirz/stm32tool
 # I didn't want to bring in the whole whole module because it needs a lot of additional dependencies for functionality I'm not even using
-import util.dfu as dfu
-import util.pydfu as pydfu
-import tempfile
+# import util.dfu as dfu
+# import util.pydfu as pydfu
+# import tempfile
+import platform
 
 # TODO: read this from a config file, and allow the user to set it in options somewhere.
 EVO_FIRMWARE_RELEASE_URL = 'https://api.github.com/repos/LamaDiLuce/polaris-opencore/releases/latest'
@@ -76,10 +77,10 @@ class Firmware_Update_Controller():
         else:
             self.fw_file = fw_file
             self.device = device
-            if self.device == 'EVO':
-                self.display = External_Process_Dialog(parent)
-            else:
-                self.display = Progress_Dialog(parent, 'Firmware Update', 'Updating NXT Firmware. Progress:', autoclose=True)
+            # if self.device == 'EVO':
+            self.display = External_Process_Dialog(parent)
+            # else:
+            #     self.display = Progress_Dialog(parent, 'Firmware Update', 'Updating NXT Firmware. Progress:', autoclose=True)
             self.log = logging.getLogger('Firmware Update Controller')
             self.log.setLevel(logging.getLogger().getEffectiveLevel())
     
@@ -97,37 +98,73 @@ class Firmware_Update_Controller():
                 self.p.start('tycmd', ['upload', self.fw_file])
             else:
                 error_handler('TYCMD not found', 'Please install TYCMD.', self.display)
-        elif self.device == 'NXT':  # Upload procedure for NXT, using the dfu files from stm32tool
-            self.display.progressBar.setMaximum(0)
-            self.display.report('Preparing file...')
-            self.display.show()
+        elif self.device == 'NXT':  # Upload procedure for NXT, using external dfu-util
+            # Notes: I had originally written this using dfu.py and pydfu.py from stm32tools.
+            # This turned out to be more trouble than it was worth, so I went back to just using
+            # external dfu-util
+            
+            # self.display.progressBar.setMaximum(0)
+            # self.display.report('Preparing file...')
+            # self.display.show()
 
-            # Convert .bin to .dfu
-            with open(self.fw_file, 'rb') as binfile:
-                data = binfile.read()
-            if not data: raise Exception(f'Unable to read data from file {self.fw_file}')
-            dfufile = os.path.join(tempfile.gettempdir(), os.path.splitext(os.path.basename(self.fw_file))[0] + '.dfu')
-            self.log.debug(f'Converting .bin to .dfu.\n.bin file: {self.fw_file}\n.dfu file: {dfufile}')
-            # I reverse-engineered this from the dfu.py file. Why does the second argument have to be a list inside a list? I have no idea. But it works.
-            dfu.build(
-                file=dfufile,
-                targets=[[{'address': int('0x08000000', 0) & 0xFFFFFFFF, 'data': data}]])
-            if not os.path.exists(dfufile): raise Exception('Error converting .bin to .dfu')
+            # # Convert .bin to .dfu
+            # with open(self.fw_file, 'rb') as binfile:
+            #     data = binfile.read()
+            # if not data: raise Exception(f'Unable to read data from file {self.fw_file}')
+            # dfufile = os.path.join(tempfile.gettempdir(), os.path.splitext(os.path.basename(self.fw_file))[0] + '.dfu')
+            # self.log.debug(f'Converting .bin to .dfu.\n.bin file: {self.fw_file}\n.dfu file: {dfufile}')
+            # # I reverse-engineered this from the dfu.py file. Why does the second argument have to be a list inside a list? I have no idea. But it works.
+            # dfu.build(
+            #     file=dfufile,
+            #     targets=[[{'address': int('0x08000000', 0) & 0xFFFFFFFF, 'data': data}]])
+            # if not os.path.exists(dfufile): raise Exception('Error converting .bin to .dfu')
 
-            # Again, this next bit is reverse-engingeered from pydfu.py
-            self.log.debug('Writing DFU file to NXT Anima.')
-            elements = pydfu.read_dfu_file(dfufile)
-            #pydfu.write_elements(elements, mass_erase_used=False)
-            self.display.report('Uploading firmware to NXT...')
-            self.display.progressBar.setValue(0)
-            self.display.progressBar.setMaximum(100)
-            # Run this in a separate thread so we can report progress to GUI
-            worker = Worker(pydfu.write_elements, elements, gui=True)
-            worker.signals.progress.connect(self.display.progressBar.setValue)
-            worker.signals.error.connect(error_handler)
-            # TODO: Figure out how to send restart command, refresh GUI
-            QtCore.QThreadPool().start(worker)
-    
+            # # Again, this next bit is reverse-engingeered from pydfu.py
+            # self.log.debug('Writing DFU file to NXT Anima.')
+            # elements = pydfu.read_dfu_file(dfufile)
+            # #pydfu.write_elements(elements, mass_erase_used=False)
+            # self.display.report('Uploading firmware to NXT...')
+            # self.display.progressBar.setValue(0)
+            # self.display.progressBar.setMaximum(100)
+            # # Run this in a separate thread so we can report progress to GUI
+            # worker = Worker(pydfu.write_elements, elements, gui=True)
+            # worker.signals.progress.connect(self.display.progressBar.setValue)
+            # worker.signals.error.connect(error_handler)
+            # # TODO: Figure out how to send restart command, refresh GUI
+            # QtCore.QThreadPool().start(worker)
+            
+            # find location of dfu-util
+            dfu_util = ''
+            if platform.system() == 'Windows':
+                # use the bundeled executable
+                dfu_util = os.path.join('util', 'dfu-util.exe')
+            elif platform.system() == 'Darwin':
+                # I tried to bundle a macos executable, but it was really difficult to do it in a way that's portable across systems. In the end, it's just easier to use brew.
+                #check for dfu-util
+                if shutil.which('dfu-util'):
+                    dfu_util = shutil.which('dfu-util')
+                elif shutil.which('brew'): # no dfu-util installed, but brew is installed
+                    # use brew to install dfu-util
+                    pass
+                else: # no brew installed
+                    # install brew and dfu-util
+                    pass
+            else: # Other OS, probably Linux
+                if shutil.which('dfu-util'):
+                    dfu_util = shutil.which('dfu-util')
+                else:
+                    QMessageBox.warning(self.display.parent(), 'No dfu-util found', 'Updating NXT firmware requires dfu-util to be installed. Please install dfu-util using your distribution\'s package manager or build from source.')
+
+            if dfu_util:
+                # install FW using dfu-util
+                self.p = QProcess()
+                self.p.readyReadStandardOutput.connect(self.handle_stdout)
+                self.p.readyReadStandardError.connect(self.handle_stderr)
+                self.p.finished.connect(lambda: self.display.finished())
+                self.display.show()
+                # dfu-util -a 0 -s 0x08000000:leave -D [upload file]
+                self.p.start(dfu_util, ['-a', '0', '-s', '0x08000000:leave', '-D', self.fw_file])
+
     def handle_stderr(self):
         data = self.p.readAllStandardError()
         stderr = bytes(data).decode("utf8")
