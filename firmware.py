@@ -71,14 +71,14 @@ class Download_Controller():
 class Firmware_Update_Controller():
     '''Performs GUI updating for firmware upload'''
 
-    def __init__(self, fw_file: str, device: str = 'EVO', parent: QWidget = None) -> None:
+    def __init__(self, fw_file: str, device: str = 'EVO', parent: QWidget = None, on_complete: callable = None) -> None:
         if device != 'EVO' and device != 'NXT':
             raise Exception('ERROR: must specify either "EVO" or "NXT" for device.')
         else:
             self.fw_file = fw_file
             self.device = device
             # if self.device == 'EVO':
-            self.display = External_Process_Dialog(parent)
+            self.display = External_Process_Dialog(parent, on_complete=on_complete)
             # else:
             #     self.display = Progress_Dialog(parent, 'Firmware Update', 'Updating NXT Firmware. Progress:', autoclose=True)
             self.log = logging.getLogger('Firmware Update Controller')
@@ -144,10 +144,10 @@ class Firmware_Update_Controller():
                 if shutil.which('dfu-util'):
                     dfu_util = shutil.which('dfu-util')
                 elif shutil.which('brew'): # no dfu-util installed, but brew is installed
-                    # use brew to install dfu-util
+                    # TODO: use brew to install dfu-util
                     pass
                 else: # no brew installed
-                    # install brew and dfu-util
+                    # TODO: install brew and dfu-util
                     pass
             else: # Other OS, probably Linux
                 if shutil.which('dfu-util'):
@@ -202,10 +202,10 @@ def prompt_for_location_and_download_fw(parent: QWidget = None, autoclose: bool 
             filename = download_fw(parent=parent, outdir=filedir, autoclose=autoclose, url=url)
             return os.path.join(filedir, filename)
 
-def upload_firmware(fw_file: str, parent: QWidget = None):
-    '''Upload firmware to saber using external tycmd command. fw_file is a string with the filename.'''
+def upload_firmware(fw_file: str, device: str, parent: QWidget = None, on_complete: callable = None):
+    '''Upload firmware to saber using external command. fw_file is a string with the filename.'''
     try:
-        fuc = Firmware_Update_Controller(fw_file, parent)
+        fuc = Firmware_Update_Controller(fw_file, device, parent, on_complete)
         fuc.upload_firmware()
     except Exception as e:
         error_handler(e, parent)

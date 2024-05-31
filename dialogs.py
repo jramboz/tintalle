@@ -6,9 +6,10 @@ from ui_aboutdialog import Ui_AboutDialog
 class Progress_Dialog(QDialog):
     '''Simple dialog to display progress of a task and activate a close button when complete.'''
 
-    def __init__(self, parent=None, title: str = "Progress", message: str = "Task Progress:", autoclose: bool = False ):
+    def __init__(self, parent=None, title: str = "Progress", message: str = "Task Progress:", autoclose: bool = False, on_complete: callable = None):
         super().__init__(parent)
         self.autoclose = autoclose
+        self.on_complete = on_complete
         if not autoclose:
             self.buttonBox = QDialogButtonBox(QDialogButtonBox.Close)
             self.buttonBox.button(QDialogButtonBox.Close).setEnabled(False)
@@ -39,12 +40,17 @@ class Progress_Dialog(QDialog):
         else:
             self.report('Task Complete')
             self.buttonBox.button(QDialogButtonBox.Close).setEnabled(True)
+    
+    def close(self) -> bool:
+        b = super().close()
+        if self.on_complete: self.on_complete()
+        return b
 
 class External_Process_Dialog(Progress_Dialog):
     '''Dialog for monitoring an external process.'''
 
-    def __init__(self, parent=None, title: str = "Progress", message: str = "Task Progress:", autoclose: bool = False):
-        super().__init__(parent, title, message, autoclose)
+    def __init__(self, parent=None, title: str = "Progress", message: str = "Task Progress:", autoclose: bool = False, on_complete: callable = None):
+        super().__init__(parent, title, message, autoclose, on_complete)
         self.layout.removeWidget(self.reportLabel)
         self.reportLabel.deleteLater()
         self.text = QPlainTextEdit()

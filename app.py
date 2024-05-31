@@ -730,13 +730,19 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def install_firmware_from_file_handler(self):
         if self.anima_is_NXT():
-            self.display_NXT_warning()
-            return
+            device = 'NXT'
+            filter = 'Anima NXT Firmware File (*.bin)'
+        else:
+            device = 'EVO'
+            filter = 'OpenCore (EVO) Firwmare File (*.hex)'
         
-        fw_file = QFileDialog.getOpenFileName(self, caption='Open Firmware File', filter='OpenCore Firwmare File (*.hex)')[0]
+
+        fw_file = QFileDialog.getOpenFileName(self, caption='Open Firmware File', filter=filter)[0]
         if fw_file:
             try:
-                firmware.upload_firmware(fw_file, self)
+                if device == 'NXT': self.sc.send_command('DFU') # put the saber into firmware update mode
+                self.disconnect_saber()
+                firmware.upload_firmware(fw_file, device, self, on_complete=self.connect_saber)
             except Exception as e:
                 error_handler(e, parent=self)
     
