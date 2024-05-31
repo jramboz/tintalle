@@ -137,18 +137,20 @@ class Firmware_Update_Controller():
             dfu_util = ''
             if platform.system() == 'Windows':
                 # use the bundeled executable
-                dfu_util = os.path.join('util', 'dfu-util.exe')
+                dfu_util = os.path.join(os.getcwd(), 'util', 'win', 'dfu-util.exe')
             elif platform.system() == 'Darwin':
-                # I tried to bundle a macos executable, but it was really difficult to do it in a way that's portable across systems. In the end, it's just easier to use brew.
-                #check for dfu-util
-                if shutil.which('dfu-util'):
-                    dfu_util = shutil.which('dfu-util')
-                elif shutil.which('brew'): # no dfu-util installed, but brew is installed
-                    # TODO: use brew to install dfu-util
-                    pass
-                else: # no brew installed
-                    # TODO: install brew and dfu-util
-                    pass
+                # # I tried to bundle a macos executable, but it was really difficult to do it in a way that's portable across systems. In the end, it's just easier to use brew.
+                # #check for dfu-util
+                # if shutil.which('dfu-util'):
+                #     dfu_util = shutil.which('dfu-util')
+                # elif shutil.which('brew'): # no dfu-util installed, but brew is installed
+                #     # TODO: use brew to install dfu-util
+                #     pass
+                # else: # no brew installed
+                #     # TODO: install brew and dfu-util
+                #     pass
+                # I managed to build a portable mac version of dfu-util, thanks to this script: https://gist.github.com/Birch-san/e84cfa3b93ffa104af2bd9a047d14109
+                dfu_util = os.path.join(os.getcwd(), 'util', 'macos', 'dfu-util')
             else: # Other OS, probably Linux
                 if shutil.which('dfu-util'):
                     dfu_util = shutil.which('dfu-util')
