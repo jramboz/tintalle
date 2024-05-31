@@ -165,7 +165,7 @@ class Firmware_Update_Controller():
                 self.p.finished.connect(lambda: self.display.finished())
                 self.display.show()
                 # dfu-util -a 0 -s 0x08000000:leave -D [upload file]
-                self.p.start(dfu_util, ['-a', '0', '-s', '0x08000000:leave', '-D', self.fw_file])
+                self.p.start(dfu_util, ['-d', '0483:df11', '-a', '0', '-s', '0x08000000:leave', '-D', self.fw_file])
 
     def handle_stderr(self):
         data = self.p.readAllStandardError()
