@@ -9,6 +9,7 @@ from threadrunner import *
 from dialogs import *
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QFileDialog, QMessageBox
 import platform
+import tempfile
 
 # TODO: read this from a config file, and allow the user to set it in options somewhere.
 EVO_FIRMWARE_RELEASE_URL = 'https://api.github.com/repos/LamaDiLuce/polaris-opencore/releases/latest'
@@ -34,7 +35,7 @@ class Download_Controller():
     def __init__(self, url: str = None, parent: QWidget = None, outdir: str = None, autoclose: bool = True):
         self.url = url
         self.parent = parent
-        self.outdir = outdir
+        self.outdir = outdir if outdir else tempfile.gettempdir()
         self.filename: str = None
 
         # set up progress dialog
