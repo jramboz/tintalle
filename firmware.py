@@ -8,6 +8,7 @@ import shutil
 from threadrunner import *
 from dialogs import *
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QPushButton, QFileDialog, QMessageBox
+import platform
 
 # TODO: read this from a config file, and allow the user to set it in options somewhere.
 EVO_FIRMWARE_RELEASE_URL = 'https://api.github.com/repos/LamaDiLuce/polaris-opencore/releases/latest'
@@ -73,15 +74,23 @@ class Firmware_Update_Controller():
         self.display.text.appendPlainText(s)
     
     def upload_firmware(self):
-        if shutil.which('tycmd'):
-            self.p = QProcess()
-            self.p.readyReadStandardOutput.connect(self.handle_stdout)
-            self.p.readyReadStandardError.connect(self.handle_stderr)
-            self.p.finished.connect(lambda: self.display.finished())
-            self.display.show()
-            self.p.start('tycmd', ['upload', self.fw_file])
+        tycmd = ''
+        if platform.system() == 'Windows':
+            tycmd = os.path.join(os.getcwd(), 'util', 'win', 'tycmd.exe')
+        elif platform.system() == 'Darwin':
+            tycmd = os.path.join(os.getcwd(), 'util', 'macos', 'tycmd')
+        elif shutil.which('tycmd'): # other OS; check if tycmd is installed somewhere in PATH
+            tycmd = shutil.which('tycmd')
         else:
-            error_handler('TYCMD not found', 'Please install TYCMD.', self.display)
+            error_handler('TYCMD not found', 'Please install TYCMD.', self.display.parent())
+            return
+
+        self.p = QProcess()
+        self.p.readyReadStandardOutput.connect(self.handle_stdout)
+        self.p.readyReadStandardError.connect(self.handle_stderr)
+        self.p.finished.connect(lambda: self.display.finished())
+        self.display.show()
+        self.p.start(tycmd, ['upload', self.fw_file])
     
     def handle_stderr(self):
         data = self.p.readAllStandardError()
