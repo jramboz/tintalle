@@ -740,7 +740,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         fw_file = QFileDialog.getOpenFileName(self, caption='Open Firmware File', filter=filter)[0]
         if fw_file:
             try:
-                if device == 'NXT': self.sc.send_command('DFU') # put the saber into firmware update mode
+                if device == 'NXT': self.sc.send_command(b'DFU') # put the saber into firmware update mode
                 self.disconnect_saber()
                 firmware.upload_firmware(fw_file, device, self, on_complete=self.connect_saber)
             except Exception as e:
