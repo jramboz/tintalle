@@ -22,7 +22,7 @@ from datetime import datetime
 import json
 import glob
 
-script_version = '0.5.0'
+script_version = '0.5.1'
 script_authors = 'Jason Ramboz'
 script_repo = 'https://github.com/jramboz/tintalle'
 
