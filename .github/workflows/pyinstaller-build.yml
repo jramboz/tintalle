@@ -16,14 +16,14 @@ jobs:
           spec: 'tintalle-win.spec'
           requirements: 'build-requirements.txt'
           upload_exe_with_name: 'py2saber-win'
-  pyinstaller-build-mac:
-    runs-on: macos-13
-    steps:
-      - name: PyInstaller Action
-        uses: Martin005/pyinstaller-action@v1.2.0
-        with:
-          python_ver: '3.12'
-          spec: 'tintalle-mac.spec'
-          requirements: 'build-requirements.txt'
-          python_arch: 'x64'
-          upload_exe_with_name: 'py2saber-mac'
+#  pyinstaller-build-mac:
+#    runs-on: macos-13
+#    steps:
+#      - name: PyInstaller Action
+#        uses: Martin005/pyinstaller-action@v1.2.0
+#        with:
+#          python_ver: '3.12'
+#          spec: 'tintalle-mac.spec'
+#          requirements: 'build-requirements.txt'
+#          python_arch: 'x64'
+#          upload_exe_with_name: 'py2saber-mac'
