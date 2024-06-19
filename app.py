@@ -65,7 +65,7 @@ class Upload_Controller():
 
         self.display.fileProgressBar.setValue(0)
         self.display.set_file_size(os.path.getsize(file))
-        worker = Worker(self.sc.write_files_to_saber, [file])
+        worker = Worker(self.sc.write_files_to_saber, [file], add_beep=False)
         worker.signals.progress.connect(self.display.fileProgressBar.setValue)
         worker.signals.finished.connect(self._finished_callback)
 
