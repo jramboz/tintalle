@@ -567,23 +567,23 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def upload_button_handler(self):
         # Get a list of files to upload. Can be one file or multiple files
         files = QFileDialog.getOpenFileNames(self, filter="RAW Sound File (*.RAW)")[0]
-        files.sort()
-        if self.anima_is_NXT():
-            beep_files = [file for file in files if "BEEP.RAW" in file]
-            # if a BEEP.RAW is specified, move it to the end of the list.
-            # NXTs seem to do better if BEEP.RAW is the last file uploaded
-            if beep_files:
-                for file in beep_files:
-                    self.log.debug(f'Moving BEEP file {file} to end of upload list.')
-                    files.remove(file)
-                    files.append(file)
-            else:
-                if 'BEEP.RAW' not in self.files_dict.keys():
-                    self.log.info('NXT saber detected and no BEEP.RAW provided. Adding default BEEP.RAW.')
-                    files.append(os.path.join(basedir, 'OpenCore_OEM', 'BEEP.RAW'))
-        self.log.debug(f'List of files to upload: {files}')
-        
         if(files):
+            files.sort()
+            if self.anima_is_NXT():
+                beep_files = [file for file in files if "BEEP.RAW" in file]
+                # if a BEEP.RAW is specified, move it to the end of the list.
+                # NXTs seem to do better if BEEP.RAW is the last file uploaded
+                if beep_files:
+                    for file in beep_files:
+                        self.log.debug(f'Moving BEEP file {file} to end of upload list.')
+                        files.remove(file)
+                        files.append(file)
+                else:
+                    if 'BEEP.RAW' not in self.files_dict.keys():
+                        self.log.info('NXT saber detected and no BEEP.RAW provided. Adding default BEEP.RAW.')
+                        files.append(os.path.join(basedir, 'OpenCore_OEM', 'BEEP.RAW'))
+            self.log.debug(f'List of files to upload: {files}')
+        
             # Create and run the upload controller
             self.uc = Upload_Controller(files, self.sc, set_effects=True, parent=self)
             try:
