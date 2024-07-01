@@ -26,6 +26,19 @@ script_version = '0.5.1'
 script_authors = 'Jason Ramboz'
 script_repo = 'https://github.com/jramboz/tintalle'
 
+# Get the directory for where resources are stored
+# We have to do some tricks to get it on Mac, because of the .app structure
+if platform.system() == 'Darwin':
+    resourcedir = os.path.sep.join(sys.argv[0].split(os.path.sep)[:-1])
+    # Check if running inside a .app package
+    if resourcedir.endswith('MacOS'):
+        contentsdir = os.path.sep.join(resourcedir.split(os.path.sep)[:-1])
+        resourcedir = os.path.join(contentsdir, 'Resources')
+    else: # Not in an app, regular method works fine
+        resourcedir = os.path.dirname(__file__)
+else:
+    resourcedir = os.path.dirname(__file__)
+
 class SCStatus(Enum):
     '''Enum for saber connection status'''
     DISCONNECTED = auto()
@@ -425,7 +438,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def _upload_default_files(self):
         self.log.info('Uploading default sound font.')
-        files = glob.glob(os.path.join(os.getcwd(), 'OpenCore_OEM', '*.RAW'))
+        files = glob.glob(os.path.join(resourcedir, 'OpenCore_OEM', '*.RAW'))
         files.sort()
         self.uc = Upload_Controller(files, self.sc, set_effects=False, reload_config=False, autoclose=True, parent=self)
         self.uc.finished_action = self._send_reset_cmd
@@ -581,7 +594,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 else:
                     if 'BEEP.RAW' not in self.files_dict.keys():
                         self.log.info('NXT saber detected and no BEEP.RAW provided. Adding default BEEP.RAW.')
-                        files.append(os.path.join(basedir, 'OpenCore_OEM', 'BEEP.RAW'))
+                        files.append(os.path.join(resourcedir, 'OpenCore_OEM', 'BEEP.RAW'))
             self.log.debug(f'List of files to upload: {files}')
         
             # Create and run the upload controller
@@ -962,7 +975,6 @@ except ImportError:
     pass
 
 if __name__ == "__main__":
-    basedir = os.path.dirname(__file__)
     app = QApplication(sys.argv)
     if platform.system == "Windows":
         icon = ':/img/tintalle.ico'
