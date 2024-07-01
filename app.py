@@ -440,6 +440,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.log.info('Uploading default sound font.')
         files = glob.glob(os.path.join(resourcedir, 'OpenCore_OEM', '*.RAW'))
         files.sort()
+        files = self.move_beep_to_last(files)
         self.uc = Upload_Controller(files, self.sc, set_effects=False, reload_config=False, autoclose=True, parent=self)
         self.uc.finished_action = self._send_reset_cmd
         try:
@@ -576,6 +577,20 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         pd.show()
         self.threadpool.start(worker)
 
+    @staticmethod
+    def move_beep_to_last(files: list[str]) -> list[str]:
+        '''If the list of files contains 'BEEP.RAW', move it to last. Otherwise return the list unchanged.'''
+        log = logging.getLogger()
+        beep_files = [file for file in files if "BEEP.RAW" in file]
+        # if a BEEP.RAW is specified, move it to the end of the list.
+        # NXTs seem to do better if BEEP.RAW is the last file uploaded
+        if beep_files:
+            for file in beep_files:
+                log.debug(f'Moving BEEP file {file} to end of upload list.')
+                files.remove(file)
+                files.append(file)
+        return files
+
     uc: Upload_Controller = None
     def upload_button_handler(self):
         # Get a list of files to upload. Can be one file or multiple files
@@ -583,16 +598,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         if(files):
             files.sort()
             if self.anima_is_NXT():
-                beep_files = [file for file in files if "BEEP.RAW" in file]
-                # if a BEEP.RAW is specified, move it to the end of the list.
-                # NXTs seem to do better if BEEP.RAW is the last file uploaded
-                if beep_files:
-                    for file in beep_files:
-                        self.log.debug(f'Moving BEEP file {file} to end of upload list.')
-                        files.remove(file)
-                        files.append(file)
-                else:
-                    if 'BEEP.RAW' not in self.files_dict.keys():
+                # move any BEEP.RAW files to last
+                files = self.move_beep_to_last(files)
+                if not files[-1].endswith('BEEP.RAW'): # if a BEEP.RAW is not included in the list to upload
+                    if 'BEEP.RAW' not in self.files_dict.keys(): # and there's not already a BEEP.RAW on the saber
                         self.log.info('NXT saber detected and no BEEP.RAW provided. Adding default BEEP.RAW.')
                         files.append(os.path.join(resourcedir, 'OpenCore_OEM', 'BEEP.RAW'))
             self.log.debug(f'List of files to upload: {files}')
