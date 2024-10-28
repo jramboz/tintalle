@@ -196,11 +196,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         '''Update the list of ports in saber_select_box'''
         self.saber_select_box.clear()
         self.display_connection_status(SCStatus.SEARCHING)
-        ports = Saber_Controller.get_ports()
+        ports = Saber_Controller.get_anima_ports()
         if ports:
             for port in ports:
-                if Saber_Controller.port_is_anima(port):
-                    self.saber_select_box.addItem(port)
+                self.saber_select_box.addItem(port)
             self.display_connection_status(SCStatus.DISCONNECTED)
         else:
             self.display_connection_status(SCStatus.NO_SABER)
