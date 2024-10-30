@@ -15,7 +15,7 @@ jobs:
           python_ver: '3.12'
           spec: 'tintalle-win.spec'
           requirements: 'build-requirements.txt'
-          upload_exe_with_name: 'py2saber-win'
+          upload_exe_with_name: 'tintalle-win'
 #  pyinstaller-build-mac:
 #    runs-on: macos-13
 #    steps:
