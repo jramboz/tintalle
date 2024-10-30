@@ -1,5 +1,5 @@
 Pyside6
-py2saber >= 0.18.1
+py2saber >= 0.18.2
 requests
 wget
 asgiref
