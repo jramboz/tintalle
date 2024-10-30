@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Tintalle"
-#define MyAppVersion "0.5.3"
+#define MyAppVersion "0.5.4"
 #define MyAppPublisher "Jason Ramboz"
 #define MyAppURL "https://github.com/jramboz/tintalle"
 #define MyAppExeName "Tintalle.exe"
