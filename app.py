@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, Q
 from PySide6.QtGui import QColor, QPixmap, QIcon, QColorConstants
 import PySide6.QtCore as QtCore
 from PySide6.QtCore import Qt
+from PySide6 import QtAsyncio
 from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException, InvalidSaberResponseException
 from threadrunner import *
@@ -14,7 +15,7 @@ import logging
 import sys
 import os
 from asgiref.sync import sync_to_async
-from AsyncioPySide6 import AsyncioPySide6
+#from AsyncioPySide6 import AsyncioPySide6
 import asyncio
 import platform
 import resources_rc
@@ -134,8 +135,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.log.setLevel(logging.INFO)
 
         # Connect signals to slots
-        self.connect_button.clicked.connect(self.connect_button_handler)
-        self.action_Refresh_Ports.triggered.connect(self.update_ports)
+        self.connect_button.clicked.connect(lambda: asyncio.ensure_future(self.connect_button_handler()))
+        self.action_Refresh_Ports.triggered.connect(lambda: asyncio.ensure_future(self.update_ports()))
         self.action_Show_Hide_Log.triggered.connect(self.show_hide_log_handler)
         self.action_Debug_Mode.triggered.connect(self.debug_mode_handler)
         self.action_Reload_Config.triggered.connect(self.reload_config_action_handler)
@@ -182,7 +183,11 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
         # Search for connected sabers
         self.display_connection_status(SCStatus.SEARCHING)
-        self.update_ports()
+        # Even though I'm running this in the context of QtAsyncio.run(), it seems that it doesn't
+        # start its own loop until _after_ the Main_Window is finished its __init__. So I have to 
+        # use asyncio.run() here instead of asyncio.ensure_future() to start up the loop.
+        # After this, everything else should be okay to use asyncio.ensure_future()
+        asyncio.run(self.update_ports())
 
     def about_action_handler(self):
         dlg = AboutDialog(script_version, script_authors, script_repo, self)
@@ -192,11 +197,11 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     # Saber connection handling methods #
     # --------------------------------- #
 
-    def update_ports(self) -> None:
+    async def update_ports(self) -> None:
         '''Update the list of ports in saber_select_box'''
         self.saber_select_box.clear()
         self.display_connection_status(SCStatus.SEARCHING)
-        ports = Saber_Controller.get_anima_ports()
+        ports = await Saber_Controller.get_anima_ports()
         if ports:
             for port in ports:
                 self.saber_select_box.addItem(port)
@@ -260,22 +265,22 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.action_Save_Colors.setEnabled(False)
             self.action_Load_Colors.setEnabled(False)
 
-    def connect_button_handler(self):
+    async def connect_button_handler(self):
         if self.sc: # if connected, disconnect
             self.disconnect_saber()
         else: # try to connect
             try:
-                self.connect_saber()
+                await self.connect_saber()
             except NoAnimaSaberException:
                 error_handler(NoAnimaSaberException(), parent=self)
                 self.display_connection_status(SCStatus.DISCONNECTED)
     
-    def connect_saber(self):
+    async def connect_saber(self):
         '''Connect to a saber and perform initialization actions. Can also be used to refresh saber configuration.'''
         self.display_connection_status(SCStatus.CONNECTING)
         if not self.sc:
             port = self.saber_select_box.currentText()
-            self.sc = Saber_Controller(port, gui=True, loglevel=self.log.getEffectiveLevel())
+            self.sc = await Saber_Controller.create(port, gui=True, loglevel=self.log.getEffectiveLevel())
         
         # create a "loading" box while connecting
         w = Loading_Box(self, "Connecting to saber.")
@@ -285,7 +290,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         w.closeEvent = _fin
         w.show()
 
-        AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+        asyncio.ensure_future(self.reload_saber_configuration(w))
 
     async def reload_saber_configuration(self, w: QDialog = None):
         '''Reload the files list and configuration files from the saber.'''
@@ -296,16 +301,16 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
         self.set_ui_enabled(False)
 
-        self.saber_config = eval(await sync_to_async(self.sc.read_config_ini)())
+        self.saber_config = eval(await self.sc.read_config_ini())
         self.current_config = self.saber_config
         self.log.debug(f'Retrieved config.ini:\n{self.saber_config}')
-        self.files_dict = await sync_to_async(self.sc.list_files_on_saber)()
+        self.files_dict = await self.sc.list_files_on_saber()
         self.log.debug(f'Retrieved files from saber:\n{self.files_dict}')
-        self.saber_info = await sync_to_async(self.sc.get_saber_info)()
+        self.saber_info = await self.sc.get_saber_info()
         self.log.debug(f'Retrieved saber info: {self.saber_info}')
-        self.space_info['free'] = await sync_to_async(self.sc.get_free_space)()
-        self.space_info['used'] = await sync_to_async(self.sc.get_used_space)()
-        self.space_info['total'] = await sync_to_async(self.sc.get_total_space)()
+        self.space_info['free'] = await self.sc.get_free_space()
+        self.space_info['used'] = await self.sc.get_used_space()
+        self.space_info['total'] = await self.sc.get_total_space()
         self.log.debug(f'Retrieved storage info: Free - {self.space_info['free']}\tUsed - {self.space_info['used']}\tTotal - {self.space_info['total']}')
         self.log.info('Successfully retrieved configuration from saber.')
 
@@ -351,8 +356,6 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             for i in [0, 1]:
                 font = item.font(i)
                 font.setItalic(True)
-                #brush = item.foreground(i)
-                # brush.setColor(QColor('red'))
                 item.setFont(i, font)
                 item.setForeground(i, QColor('red'))
             items.append(item)
@@ -382,7 +385,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         )
 
         if button == QMessageBox.Yes:
-            AsyncioPySide6.runTask(self.reload_saber_configuration())
+            asyncio.ensure_future(self.reload_saber_configuration())
 
     def reset_saber_to_defaults_action_handler(self):
         button = QMessageBox.warning(
@@ -396,7 +399,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         if button == QMessageBox.Yes:
             self.clear_color_ui()
             self.clear_sound_ui()
-            AsyncioPySide6.runTask(self._reset_to_defaults())
+            asyncio.ensure_future(self._reset_to_defaults())
 
     async def _reset_to_defaults(self):
         self.log.info('Resetting saber to default configuration.')
@@ -542,39 +545,51 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         )
 
         if button == QMessageBox.Ok:
-            self._erase_all()
+            asyncio.ensure_future(self._erase_all())
 
-    def _erase_all(self, reload_config: bool = True):
+    async def _erase_all(self, reload_config: bool = True):
         self.log.info("Erasing all files on connected saber.")
         
-        #set up thread
         pd = Progress_Dialog(parent=self, title="Erasing Saber", message="Erasing all sound files on saber.", autoclose=not reload_config)
-        worker = Worker(self.sc.erase_all_files)
+        pd.show()
 
-        def f():
-            '''Actions to do when task is finished.'''
-            pd.finished()
-            if reload_config:
-                AsyncioPySide6.runTask(self.reload_saber_configuration())
-
-        def e(error: tuple):
-            '''What to do with an error.'''
-            pd.report("An error has occurred. See the log for details.")
-            error_handler(error, parent=self)
-
-        def r(obj: object):
-            '''What to do with task result.'''
+        #worker = Worker(self.sc.erase_all_files)
+        try:
+            await self.sc.erase_all_files(progress_callback=pd.progressBar.setValue)
             pd.report("All sound files on saber have been erased.\nPlease re-load your sound files.")
             self.log.info("All sound files on saber have been erased. Please re-load your sound files.")
+            if reload_config:
+                await self.reload_saber_configuration()
+        except Exception as e:
+            pd.report("An error has occurred. See the log for details.")
+            error_handler(e, parent=self)
+        finally:
+            pd.finished()
 
-        worker.signals.finished.connect(f)
-        worker.signals.error.connect(e)
-        worker.signals.result.connect(r)
-        worker.signals.progress.connect(pd.progressBar.setValue)
+        # def f():
+        #     '''Actions to do when task is finished.'''
+        #     pd.finished()
+        #     if reload_config:
+        #         AsyncioPySide6.runTask(self.reload_saber_configuration())
 
-        # execute thread and show progress dialog
-        pd.show()
-        self.threadpool.start(worker)
+        # def e(error: tuple):
+        #     '''What to do with an error.'''
+        #     pd.report("An error has occurred. See the log for details.")
+        #     error_handler(error, parent=self)
+
+        # def r(obj: object):
+        #     '''What to do with task result.'''
+        #     pd.report("All sound files on saber have been erased.\nPlease re-load your sound files.")
+        #     self.log.info("All sound files on saber have been erased. Please re-load your sound files.")
+
+        # worker.signals.finished.connect(f)
+        # worker.signals.error.connect(e)
+        # worker.signals.result.connect(r)
+        # worker.signals.progress.connect(pd.progressBar.setValue)
+
+        # # execute thread and show progress dialog
+        # pd.show()
+        # self.threadpool.start(worker)
 
     @staticmethod
     def move_beep_to_last(files: list[str]) -> list[str]:
@@ -989,7 +1004,6 @@ if __name__ == "__main__":
     else:
         icon = ':/img/tintalle.png'
     app.setWindowIcon(QIcon(':/img/tintalle.png'))
-    with AsyncioPySide6.use_asyncio():
-        mainwindow = Main_Window()
+    mainwindow = Main_Window()
 
-        app.exec()
+    QtAsyncio.run(handle_sigint=True)
