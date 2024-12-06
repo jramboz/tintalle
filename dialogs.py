@@ -108,6 +108,7 @@ class File_Upload_Progress_Dialog(QDialog):
     def cancel_button_handler(self):
         self.halt = True
         self.buttonBox.button(QDialogButtonBox.Cancel).setEnabled(False)
+        self.buttonBox.button(QDialogButtonBox.Cancel).setText('Canceling...')
         logging.getLogger().info('Canceling file upload.')
     
     def upload_complete(self):
