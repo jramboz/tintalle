@@ -48,60 +48,61 @@ class SCStatus(Enum):
     CONNECTED = auto()
     NO_SABER = auto()
 
-class Upload_Controller():
-    '''Tracks state for mutli-file uploads.'''
-    def __init__(self, files: list[str], sc: Saber_Controller, set_effects: bool = True, reload_config: bool = True, autoclose: bool = False, parent: QWidget = None):
-        self.files = files
-        self.sc = sc
-        self.set_effects = set_effects
-        self.reload_config = reload_config
-        self.log = logging.getLogger()
-        self.threadpool = QtCore.QThreadPool()
-        self.finished_action: callable = None
-        # Create the file upload progress dialog
-        if len(files) == 1:
-            self.display = File_Upload_Progress_Dialog(parent=parent, autoclose=autoclose)
-        else:
-            self.display = File_Upload_Progress_Dialog(parent=parent, multifile=True, autoclose=autoclose)
-            self.display.set_num_files(len(files))
-        self.display.show()
+# This is no longer needed after the async rewrite. Keeping it in the code for now just in case I need to look back on anything.
+# class Upload_Controller():
+#     '''Tracks state for mutli-file uploads.'''
+#     def __init__(self, files: list[str], sc: Saber_Controller, set_effects: bool = True, reload_config: bool = True, autoclose: bool = False, parent: QWidget = None):
+#         self.files = files
+#         self.sc = sc
+#         self.set_effects = set_effects
+#         self.reload_config = reload_config
+#         self.log = logging.getLogger()
+#         self.threadpool = QtCore.QThreadPool()
+#         self.finished_action: callable = None
+#         # Create the file upload progress dialog
+#         if len(files) == 1:
+#             self.display = File_Upload_Progress_Dialog(parent=parent, autoclose=autoclose)
+#         else:
+#             self.display = File_Upload_Progress_Dialog(parent=parent, multifile=True, autoclose=autoclose)
+#             self.display.set_num_files(len(files))
+#         self.display.show()
 
-    def run(self):
-        '''Initiate file upload.'''
-        self.display.show()
-        self._upload_next_file()
+#     def run(self):
+#         '''Initiate file upload.'''
+#         self.display.show()
+#         self._upload_next_file()
 
-    def _upload_next_file(self):
-        file = self.files.pop(0)
-        self.log.info(f'Uploading file: {os.path.basename(file)}')
-        self.log.debug(f'File path: {file}')
-        self.display.fileNameLabel.setText(f'File: {os.path.basename(file)}')
+#     def _upload_next_file(self):
+#         file = self.files.pop(0)
+#         self.log.info(f'Uploading file: {os.path.basename(file)}')
+#         self.log.debug(f'File path: {file}')
+#         self.display.fileNameLabel.setText(f'File: {os.path.basename(file)}')
 
-        self.display.fileProgressBar.setValue(0)
-        self.display.set_file_size(os.path.getsize(file))
-        worker = Worker(self.sc.write_files_to_saber, [file], add_beep=False)
-        worker.signals.progress.connect(self.display.fileProgressBar.setValue)
-        worker.signals.finished.connect(self._finished_callback)
+#         self.display.fileProgressBar.setValue(0)
+#         self.display.set_file_size(os.path.getsize(file))
+#         worker = Worker(self.sc.write_files_to_saber, [file], add_beep=False)
+#         worker.signals.progress.connect(self.display.fileProgressBar.setValue)
+#         worker.signals.finished.connect(self._finished_callback)
 
-        self.threadpool.start(worker)
+#         self.threadpool.start(worker)
     
-    def _finished_callback(self):
-        '''Function to upload the file and update the dialog. Set this as the finished callback to continue looping through the list.'''
-        self.display.file_completed()
+#     def _finished_callback(self):
+#         '''Function to upload the file and update the dialog. Set this as the finished callback to continue looping through the list.'''
+#         self.display.file_completed()
 
-        if self.display.halt or len(self.files) == 0: #user has clicked cancel button or no more files left
-            self.display.upload_complete()
-            if self.set_effects:
-                AsyncioPySide6.runTask(self.display.parent().auto_assign_effects(reload_config=self.reload_config))
-            else:
-                # this is kind of a hack and not great software design, but with the callbacks and all this seems to tbe the best place to put the reload
-                if self.reload_config:
-                    AsyncioPySide6.runTask(self.display.parent().reload_saber_configuration())
-                else:
-                    AsyncioPySide6.runTask(self.finished_action())
-        else:
-            self._upload_next_file()
-        
+#         if self.display.halt or len(self.files) == 0: #user has clicked cancel button or no more files left
+#             self.display.upload_complete()
+#             if self.set_effects:
+#                 AsyncioPySide6.runTask(self.display.parent().auto_assign_effects(reload_config=self.reload_config))
+#             else:
+#                 # this is kind of a hack and not great software design, but with the callbacks and all this seems to tbe the best place to put the reload
+#                 if self.reload_config:
+#                     AsyncioPySide6.runTask(self.display.parent().reload_saber_configuration())
+#                 else:
+#                     AsyncioPySide6.runTask(self.finished_action())
+#         else:
+#             self._upload_next_file()
+
 
 def getHumanReadableSize(size,precision=2):
     '''Takes a size in bytes and outputs human-readable string.'''
@@ -605,7 +606,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 files.append(file)
         return files
 
-    uc: Upload_Controller = None
+    # uc: Upload_Controller = None
     def upload_button_handler(self):
         # Get a list of files to upload. Can be one file or multiple files
         files = QFileDialog.getOpenFileNames(self, filter="RAW Sound File (*.RAW)")[0]
@@ -620,12 +621,51 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                         files.append(os.path.join(resourcedir, 'OpenCore_OEM', 'BEEP.RAW'))
             self.log.debug(f'List of files to upload: {files}')
         
-            # Create and run the upload controller
-            self.uc = Upload_Controller(files, self.sc, set_effects=True, parent=self)
+            # # Create and run the upload controller
+            # self.uc = Upload_Controller(files, self.sc, set_effects=True, parent=self)
+            # try:
+            #     self.uc.run()
+            # except Exception as e:
+            #     error_handler(e, parent=self)
+
+            asyncio.ensure_future(self._upload_files(files))
+
+    async def _upload_files(self, files: list[str], set_effects: bool = True, reload_config: bool = True, autoclose: bool = False):
+        fupd = File_Upload_Progress_Dialog(self, multifile=True if len(files) > 1 else False, autoclose=autoclose)
+        fupd.set_num_files(len(files))
+        fupd.show()
+
+        for file in files:
+            # Prepare info display
+            self.log.info(f'Uploading file: {os.path.basename(file)}')
+            self.log.debug(f'File path: {file}')
+            fupd.fileNameLabel.setText(f"File: {os.path.basename(file)}")
+            fupd.fileProgressBar.setValue(0)
+            fupd.set_file_size(os.path.getsize(file))
+            
+            # Upload file
             try:
-                self.uc.run()
+                await self.sc.write_files_to_saber([file], progress_callback=fupd.fileProgressBar.setValue, add_beep=False)
             except Exception as e:
-                error_handler(e, parent=self)
+                error_handler(e, info="We recommend erasing all files on the Anima before uploading again.", parent=self)
+                fupd.halt = True
+            
+            # Update display with file completed
+            fupd.file_completed()
+            # TODO: Show 5 second waiting message.
+
+            # Check to see if user has clicked 'Cancel'
+            if fupd.halt:
+                break
+
+        fupd.upload_complete()
+        try:
+            if set_effects:
+                await self.auto_assign_effects(reload_config=False)
+            if reload_config:
+                await self.reload_saber_configuration()
+        except Exception as e:
+            error_handler(e, parent=self)
 
     def clear_sound_ui(self):
         for box in self.effects_buttonGroup.buttons():
@@ -706,15 +746,15 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         w.show()
 
         self.log.info('Automatically assigning sound files to effects based on the default naming scheme.')
-        await sync_to_async(self.sc.auto_assign_sound_effects)()
+        await self.sc.auto_assign_sound_effects()
         await asyncio.sleep(2)
         w.close()
 
         if reload_config:
-            AsyncioPySide6.runTask(self.reload_saber_configuration())
+            await self.reload_saber_configuration()
     
     def auto_assign_effects_button_handler(self):
-        AsyncioPySide6.runTask(self.auto_assign_effects())
+        asyncio.ensure_future(self.auto_assign_effects())
 
     # ------------------------- #
     # Firmware handling methods #
