@@ -14,7 +14,7 @@ from enum import Enum, auto
 import logging
 import sys
 import os
-from asgiref.sync import sync_to_async
+#from asgiref.sync import sync_to_async
 #from AsyncioPySide6 import AsyncioPySide6
 import asyncio
 import platform
@@ -318,7 +318,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.update_ui_with_config()
         self.set_ui_enabled(True)
 
-        w.close()
+        if w.autoclose:
+            w.close()
 
     def update_ui_with_config(self):
         '''Populates UI elements with the config data loaded from the saber.'''
@@ -403,53 +404,99 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             asyncio.ensure_future(self._reset_to_defaults())
 
     async def _reset_to_defaults(self):
-        self.log.info('Resetting saber to default configuration.')
-        pd = Progress_Dialog(self, "Resetting Saber", 'Erasing files...', autoclose=True)
+        self.log.info('Resetting Anima to default configuration.')
+        pd = Progress_Dialog(self, "Resetting Anima", 'Erasing files...', autoclose=False)
         pd.show()
 
-        self.log.info("Erasing all files on connected saber.")
-        worker = Worker(self.sc.erase_all_files)
-        worker.signals.progress.connect(pd.progressBar.setValue)
-        worker.signals.error.connect(error_handler)
-        
-        def f():
-            pd.finished()
-            self._upload_default_files()
-
-        worker.signals.finished.connect(f)
-        self.threadpool.start(worker)
-
-    async def _send_reset_cmd(self):
-        pd = Progress_Dialog(self, "Resetting Saber", 'Sending RESET and SAVE commands.', autoclose=True)
-        self.log.info('Sending reset commands')
-        pd.progressBar.setValue(0)
-        pd.progressBar.setMaximum(100)
-        pd.show()
-        self.sc.send_command(b'RESET')
-        result = await sync_to_async(self.sc.read_line)()
-        if result != b'OK RESET\n':
-            raise InvalidSaberResponseException(f'Command: RESET\nResponse: {result}')
-        pd.progressBar.setValue(50)
-        self.sc.send_command(b'SAVE')
-        result = await sync_to_async(self.sc.read_line)()
-        if result != b'OK SAVE\n':
-            raise InvalidSaberResponseException(f'Command: SAVE\nResponse: {result}')
-        pd.progressBar.setValue(100)
-        pd.finished()
-        QMessageBox.information(self, "Saber Reset", "Reset complete!")
-        AsyncioPySide6.runTask(self.reload_saber_configuration())
-
-    def _upload_default_files(self):
-        self.log.info('Uploading default sound font.')
-        files = glob.glob(os.path.join(resourcedir, 'OpenCore_OEM', '*.RAW'))
-        files.sort()
-        files = self.move_beep_to_last(files)
-        self.uc = Upload_Controller(files, self.sc, set_effects=False, reload_config=False, autoclose=True, parent=self)
-        self.uc.finished_action = self._send_reset_cmd
         try:
-            self.uc.run()
+            # Erase files
+            self.log.info("Erasing all files on the Anima.")
+            await self.sc.erase_all_files(progress_callback=pd.progressBar.setValue)
+            
+            # Upload default sound font
+            self.log.info("Uploading default sound font.")
+            pd.messageLabel.setText("Uploading default sound font...")
+            pd.progressBar.setMaximum(0)
+            files = glob.glob(os.path.join(resourcedir, 'OpenCore_OEM', '*.RAW'))
+            files.sort()
+            files = self.move_beep_to_last(files)
+            await self._upload_files(files, set_effects=False, reload_config=False, autoclose=True)
+
+            # Send RESET and SAVE commands
+            self.log.info('Sending RESET and SAVE commands.')
+            pd.messageLabel.setText("Sending RESET and SAVE commands")
+            pd.progressBar.setValue(0)
+            pd.progressBar.setMaximum(100)
+            await self.sc.send_command(b'RESET')
+            result = await self.sc.read_line()
+            if result != b'OK RESET\n':
+                raise InvalidSaberResponseException(f'Command: RESET\nResponse: {result}')
+            pd.progressBar.setValue(50)
+            await self.sc.send_command(b'SAVE')
+            result = await self.sc.read_line()
+            if result != b'OK SAVE\n':
+                raise InvalidSaberResponseException(f'Command: SAVE\nResponse: {result}')
+            pd.progressBar.setValue(100)
+
+            # Reload config
+            self.log.info("Reloading configuration from Anima")
+            pd.messageLabel.setText("Reloading configuration from Anima")
+            pd.progressBar.setMaximum(0)
+            await self.reload_saber_configuration(w=pd)
+
+            pd.progressBar.setMaximum(100)
+            pd.progressBar.setValue(100)
+            pd.report("Reset complete!")
+
         except Exception as e:
+            pd.report("An error has occurred. See the log for details.")
             error_handler(e, parent=self)
+        finally:
+            pd.finished()
+
+        # self.log.info("Erasing all files on connected saber.")
+        # worker = Worker(self.sc.erase_all_files)
+        # worker.signals.progress.connect(pd.progressBar.setValue)
+        # worker.signals.error.connect(error_handler)
+        
+        # def f():
+        #     pd.finished()
+        #     self._upload_default_files()
+
+        # worker.signals.finished.connect(f)
+        # self.threadpool.start(worker)
+
+    # async def _send_reset_cmd(self):
+    #     pd = Progress_Dialog(self, "Resetting Saber", 'Sending RESET and SAVE commands.', autoclose=True)
+    #     self.log.info('Sending reset commands')
+    #     pd.progressBar.setValue(0)
+    #     pd.progressBar.setMaximum(100)
+    #     pd.show()
+    #     self.sc.send_command(b'RESET')
+    #     result = await sync_to_async(self.sc.read_line)()
+    #     if result != b'OK RESET\n':
+    #         raise InvalidSaberResponseException(f'Command: RESET\nResponse: {result}')
+    #     pd.progressBar.setValue(50)
+    #     self.sc.send_command(b'SAVE')
+    #     result = await sync_to_async(self.sc.read_line)()
+    #     if result != b'OK SAVE\n':
+    #         raise InvalidSaberResponseException(f'Command: SAVE\nResponse: {result}')
+    #     pd.progressBar.setValue(100)
+    #     pd.finished()
+    #     QMessageBox.information(self, "Saber Reset", "Reset complete!")
+    #     AsyncioPySide6.runTask(self.reload_saber_configuration())
+
+    # def _upload_default_files(self):
+    #     self.log.info('Uploading default sound font.')
+    #     files = glob.glob(os.path.join(resourcedir, 'OpenCore_OEM', '*.RAW'))
+    #     files.sort()
+    #     files = self.move_beep_to_last(files)
+    #     self.uc = Upload_Controller(files, self.sc, set_effects=False, reload_config=False, autoclose=True, parent=self)
+    #     self.uc.finished_action = self._send_reset_cmd
+    #     try:
+    #         self.uc.run()
+    #     except Exception as e:
+    #         error_handler(e, parent=self)
 
     # ------------------------- #
     # Logging and debug methods #

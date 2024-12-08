@@ -125,7 +125,7 @@ class File_Upload_Progress_Dialog(QDialog):
 
 class Loading_Box(QDialog):
     '''Displays an animated "loading" box for actions without specific completion measures.'''
-    def __init__(self, parent: QWidget = None, message: str = "Loading...") -> None:
+    def __init__(self, parent: QWidget = None, message: str = "Loading...", autoclose: bool = True) -> None:
         super().__init__(parent)
         self.setModal(True)
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint)
@@ -135,6 +135,7 @@ class Loading_Box(QDialog):
         bar.setMaximum(0)
         self.layout.addWidget(bar)
         self.setLayout(self.layout)
+        self.autoclose = autoclose
 
 def error_handler(error, info = None, parent: QWidget = None) -> None:
     '''Display an error message to the user and log to the log file.'''
