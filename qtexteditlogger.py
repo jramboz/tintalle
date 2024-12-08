@@ -12,7 +12,12 @@ class QTextEditLogger(logging.Handler, QtWidgets.QPlainTextEdit):
         QtWidgets.QPlainTextEdit.__init__(self, parent)
         self.setReadOnly(True)
         self.emitter = QTextEditLogger.Emitter()
-        self.emitter.log.connect(self.appendPlainText)
+        self.emitter.log.connect(self.addText)
+
+    def addText(self, text: str):
+        self.appendPlainText(text)
+        # TODO: add setting or checkbox for autoscroll
+        self.ensureCursorVisible()  # scroll to end of log
 
     def emit(self, record):
         msg = self.format(record)
