@@ -775,21 +775,23 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def sound_save_button_handler(self):
         '''Write the sound file effect settings to the saber.'''
         w = Loading_Box(self, "Saving configuration to saber.")
+        # TODO: add a box with a progress bar showing which effect is being saved
         w.show()
 
-        AsyncioPySide6.runTask(self._save_sound_settings(w))
+        asyncio.ensure_future(self._save_sound_settings(w))
 
     async def _save_sound_settings(self, w: QDialog):
         for effect, files in self.current_config['sounds'].items():
             if effect == 'soundengine': continue
             self.log.info(f'Setting sounds for effect: {effect}')
-            self.sc.set_sounds_for_effect(effect, files)
+            await self.sc.set_sounds_for_effect(effect, files)
             await asyncio.sleep(1)
-        AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+        asyncio.ensure_future(self.reload_saber_configuration(w))
     
     async def auto_assign_effects(self, reload_config:bool = True):
         '''Automatically assign sound files to effects for the files currently on the saber.'''
         w = Loading_Box(self, "Automatically setting sound effects\nbased on the default naming scheme.")
+        # TODO: add a box with a progress bar showing which effect is being saved
         w.show()
 
         self.log.info('Automatically assigning sound files to effects based on the default naming scheme.')
