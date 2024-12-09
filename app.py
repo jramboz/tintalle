@@ -978,14 +978,14 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             "white": self.w_spinbox.value()
         }
     
-    def preview_color_on_saber(self, color: dict):
+    async def preview_color_on_saber(self, color: dict):
         '''Send the specified color to the saber for preview.'''
         self.log.debug(f'Previewing color: {color}')
-        self.sc.preview_color(*color.values())
+        await self.sc.preview_color(*color.values())
 
     def preview_button_handler(self):
         self.log.info('Previewing color on saber.')
-        self.preview_color_on_saber(self.get_current_color())
+        asyncio.ensure_future(self.preview_color_on_saber(self.get_current_color()))
 
     def update_current_config_from_gui(self):
         '''Updates the stored configuration when the GUI elements are changed.'''
@@ -998,27 +998,28 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         w = Loading_Box(self, "Saving configuration to saber.")
         w.show()
 
-        async def _save_current_color(self: Main_Window, w: QDialog):
-            await self.save_color_bank(self.color_bank_select_box.currentIndex(), set_active=True)
-            AsyncioPySide6.runTask(self.reload_saber_configuration(w))
+        asyncio.ensure_future(self._save_current_color(w))
 
-        AsyncioPySide6.runTask(_save_current_color(self, w))
+    async def _save_current_color(self, w: QDialog):
+        await self.save_color_bank(self.color_bank_select_box.currentIndex(), set_active=True)
+        asyncio.ensure_future(self.reload_saber_configuration(w))
 
     def save_all_colors_button_handler(self):
         '''Write the values of all banks to the saber.'''
         w = Loading_Box(self, "Saving configuration to saber.")
         w.show()
 
-        async def _save_all_colors(self: Main_Window, w: QDialog):
-            self.log.debug('Saving all color banks to saber.')
-            count = self.color_bank_select_box.count()
-            for i in range(count):
-                await self.save_color_bank(i, set_active=False)
-                await asyncio.sleep(1)
+        asyncio.ensure_future(self._save_all_colors(w))
 
-            AsyncioPySide6.runTask(self.reload_saber_configuration(w))
-        
-        AsyncioPySide6.runTask(_save_all_colors(self, w))
+    async def _save_all_colors(self, w: QDialog):
+        # TODO: implement progress bar that fills up as each is saved
+        self.log.debug('Saving all color banks to saber.')
+        count = self.color_bank_select_box.count()
+        for i in range(count):
+            await self.save_color_bank(i, set_active=False)
+            await asyncio.sleep(1)
+
+        asyncio.ensure_future(self.reload_saber_configuration(w))
 
     async def save_color_bank(self, bank: int, set_active=True):
         self.log.info(f'Saving color bank #{bank+1} to saber.')
@@ -1031,10 +1032,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     async def _set_colors(self, bank: int, m_color: dict, cl_color: dict, s_color:dict, set_active=True):
         try:
-            AsyncioPySide6.runTask(sync_to_async(self.sc.set_color)(bank, "color", m_color['red'], m_color['green'], m_color['blue'], m_color['white']))
-            AsyncioPySide6.runTask(sync_to_async(self.sc.set_color)(bank, "clash", cl_color['red'], cl_color['green'], cl_color['blue'], cl_color['white']))
-            AsyncioPySide6.runTask(sync_to_async(self.sc.set_color)(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white']))
-            if set_active: AsyncioPySide6.runTask(sync_to_async(self.sc.set_active_bank)(bank))
+            await self.sc.set_color(bank, "color", m_color['red'], m_color['green'], m_color['blue'], m_color['white'])
+            await self.sc.set_color(bank, "clash", cl_color['red'], cl_color['green'], cl_color['blue'], cl_color['white'])
+            await self.sc.set_color(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white'])
+            if set_active: await self.sc.set_active_bank(bank)
         except Exception as e:
             error_handler(e)
     
