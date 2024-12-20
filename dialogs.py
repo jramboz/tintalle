@@ -37,7 +37,8 @@ class Progress_Dialog(QDialog):
         if self.autoclose:
             self.close()
         else:
-            self.report('Task Complete')
+            if not self.reportLabel.text:
+                self.report('Task Complete')
             self.buttonBox.button(QDialogButtonBox.Close).setEnabled(True)
 
 class External_Process_Dialog(Progress_Dialog):
@@ -107,6 +108,7 @@ class File_Upload_Progress_Dialog(QDialog):
     def cancel_button_handler(self):
         self.halt = True
         self.buttonBox.button(QDialogButtonBox.Cancel).setEnabled(False)
+        self.buttonBox.button(QDialogButtonBox.Cancel).setText('Canceling...')
         logging.getLogger().info('Canceling file upload.')
     
     def upload_complete(self):
@@ -123,7 +125,7 @@ class File_Upload_Progress_Dialog(QDialog):
 
 class Loading_Box(QDialog):
     '''Displays an animated "loading" box for actions without specific completion measures.'''
-    def __init__(self, parent: QWidget = None, message: str = "Loading...") -> None:
+    def __init__(self, parent: QWidget = None, message: str = "Loading...", autoclose: bool = True) -> None:
         super().__init__(parent)
         self.setModal(True)
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint)
@@ -133,6 +135,7 @@ class Loading_Box(QDialog):
         bar.setMaximum(0)
         self.layout.addWidget(bar)
         self.setLayout(self.layout)
+        self.autoclose = autoclose
 
 def error_handler(error, info = None, parent: QWidget = None) -> None:
     '''Display an error message to the user and log to the log file.'''
