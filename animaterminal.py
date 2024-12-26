@@ -21,8 +21,9 @@ class AnimaTerminalWindow(Ui_AnimaTerminalWindow, QDialog):
         self.default_format = self.terminalDisplay.currentCharFormat()
         self.reader_task = asyncio.create_task(self.reader())
 
-    def __del__(self):
+    def closeEvent(self, event):
         self.reader_task.cancel()
+        event.accept()
 
     async def reader(self):
         while True:
