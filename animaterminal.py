@@ -36,6 +36,7 @@ class AnimaTerminalWindow(Ui_AnimaTerminalWindow, QDialog):
         cursor.movePosition(QTextCursor.End)
         cursor.setCharFormat(self.default_format)
         cursor.insertText(text)
+        self.terminalDisplay.ensureCursorVisible()
 
     async def send_action(self):
         cmd = self.commandTextBox.text()
