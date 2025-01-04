@@ -15,9 +15,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLineEdit,
-    QPlainTextEdit, QPushButton, QSizePolicy, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLabel,
+    QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy,
+    QVBoxLayout, QWidget)
 
 class Ui_AnimaTerminalWindow(object):
     def setupUi(self, AnimaTerminalWindow):
@@ -28,6 +28,11 @@ class Ui_AnimaTerminalWindow(object):
         AnimaTerminalWindow.setSizeGripEnabled(False)
         self.verticalLayout = QVBoxLayout(AnimaTerminalWindow)
         self.verticalLayout.setObjectName(u"verticalLayout")
+        self.warning_label = QLabel(AnimaTerminalWindow)
+        self.warning_label.setObjectName(u"warning_label")
+
+        self.verticalLayout.addWidget(self.warning_label)
+
         self.terminalDisplay = QPlainTextEdit(AnimaTerminalWindow)
         self.terminalDisplay.setObjectName(u"terminalDisplay")
         self.terminalDisplay.setStyleSheet(u"background: black;\n"
@@ -59,6 +64,7 @@ class Ui_AnimaTerminalWindow(object):
 
     def retranslateUi(self, AnimaTerminalWindow):
         AnimaTerminalWindow.setWindowTitle(QCoreApplication.translate("AnimaTerminalWindow", u"Anima Terminal", None))
+        self.warning_label.setText(QCoreApplication.translate("AnimaTerminalWindow", u"<html><head/><body><p align=\"center\"><span style=\" color:#ff0000;\">WARNING: Advanced users only. Do not use if you do not know what you are doing!</span></p></body></html>", None))
         self.sendButton.setText(QCoreApplication.translate("AnimaTerminalWindow", u"Send", None))
     # retranslateUi
 
