@@ -44,6 +44,7 @@ class AnimaTerminalWindow(Ui_AnimaTerminalWindow, QDialog):
         self.terminalDisplay.appendHtml(
             f'<p style="color:yellow;">&gt; {cmd}<br /></p>'
         )
+        self.commandTextBox.clear()
 
 
 async def main():
