@@ -746,6 +746,7 @@
     </property>
     <addaction name="action_Refresh_Ports"/>
     <addaction name="action_Reload_Config"/>
+    <addaction name="action_Anima_Terminal"/>
    </widget>
    <widget class="QMenu" name="menuTroubleshooting">
     <property name="title">
@@ -915,6 +916,14 @@
    </property>
    <property name="toolTip">
     <string>Reset saber to original default settings and sounds</string>
+   </property>
+  </action>
+  <action name="action_Anima_Terminal">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Anima &amp;Terminal</string>
    </property>
   </action>
  </widget>
