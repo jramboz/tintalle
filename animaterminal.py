@@ -40,7 +40,6 @@ class AnimaTerminalWindow(Ui_AnimaTerminalWindow, QDialog):
 
     async def send_action(self):
         cmd = self.commandTextBox.text()
-        print(f"Sending command: {cmd}")
         await self.sc.send_command(cmd.encode("utf-8"))
         self.terminalDisplay.appendHtml(
             f'<p style="color:yellow;">&gt; {cmd}<br /></p>'
