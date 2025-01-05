@@ -233,8 +233,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         # create a "loading" box while connecting
         w = Loading_Box(self, "Connecting to saber.")
         def _fin(event): # things to do once connection is complete
-            self.display_connection_status(SCStatus.CONNECTED)
-            self.log.info(f'Connected to saber.\nSerial Number: {self.saber_info["serial"]}\nFirmware version: {self.saber_info["version"]}')
+            if self.saber_config:
+                self.display_connection_status(SCStatus.CONNECTED)
+                self.log.info(f'Connected to saber.\nSerial Number: {self.saber_info["serial"]}\nFirmware version: {self.saber_info["version"]}')
         w.closeEvent = _fin
         w.show()
 
@@ -248,22 +249,38 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             w.show()
 
         self.set_ui_enabled(False)
+        self.saber_config= {}
 
-        self.saber_config = eval(await self.sc.read_config_ini())
-        self.current_config = self.saber_config
-        self.log.debug(f'Retrieved config.ini:\n{self.saber_config}')
-        self.files_dict = await self.sc.list_files_on_saber()
-        self.log.debug(f'Retrieved files from saber:\n{self.files_dict}')
-        self.saber_info = await self.sc.get_saber_info()
-        self.log.debug(f'Retrieved saber info: {self.saber_info}')
-        self.space_info['free'] = await self.sc.get_free_space()
-        self.space_info['used'] = await self.sc.get_used_space()
-        self.space_info['total'] = await self.sc.get_total_space()
-        self.log.debug(f'Retrieved storage info: Free - {self.space_info['free']}\tUsed - {self.space_info['used']}\tTotal - {self.space_info['total']}')
-        self.log.info('Successfully retrieved configuration from saber.')
+        try:
+            # TODO: make timeout customizable in settings
+            self.saber_config = eval(await asyncio.wait_for(self.sc.read_config_ini(), timeout=10))
+            self.current_config = self.saber_config
+            self.log.debug(f'Retrieved config.ini:\n{self.saber_config}')
+            self.files_dict = await self.sc.list_files_on_saber()
+            self.log.debug(f'Retrieved files from saber:\n{self.files_dict}')
+            self.saber_info = await self.sc.get_saber_info()
+            self.log.debug(f'Retrieved saber info: {self.saber_info}')
+            self.space_info['free'] = await self.sc.get_free_space()
+            self.space_info['used'] = await self.sc.get_used_space()
+            self.space_info['total'] = await self.sc.get_total_space()
+            self.log.debug(f'Retrieved storage info: Free - {self.space_info['free']}\tUsed - {self.space_info['used']}\tTotal - {self.space_info['total']}')
+            self.log.info('Successfully retrieved configuration from saber.')
 
-        self.update_ui_with_config()
-        self.set_ui_enabled(True)
+            self.update_ui_with_config()
+            self.set_ui_enabled(True)
+        except asyncio.TimeoutError:
+            box = QMessageBox(
+                QMessageBox.Critical, 
+                "ERROR: Operation Timed Out", 
+                '''Tintallë timed out waiting for a response from your Anima. 
+                Please try turning your Anima off and back on, then try again.''',
+                QMessageBox.Close,
+                parent=self)
+            self.disconnect_saber()
+            self.log.error('Connection timed out while reading configuration file from Anima.')
+            box.exec()
+        except Exception as e:
+            error_handler(e)
 
         if w.autoclose:
             w.close()
