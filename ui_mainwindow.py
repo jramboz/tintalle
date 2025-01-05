@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.0
+## Created by: Qt User Interface Compiler version 6.8.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -33,7 +33,7 @@ class Ui_MainWindow(object):
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(897, 697)
         icon = QIcon()
-        icon.addFile(u":/img/tintalle.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/img/tintalle.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         MainWindow.setWindowIcon(icon)
         self.action_Refresh_Ports = QAction(MainWindow)
         self.action_Refresh_Ports.setObjectName(u"action_Refresh_Ports")
@@ -79,6 +79,9 @@ class Ui_MainWindow(object):
         self.action_Reset_Saber_to_Defaults = QAction(MainWindow)
         self.action_Reset_Saber_to_Defaults.setObjectName(u"action_Reset_Saber_to_Defaults")
         self.action_Reset_Saber_to_Defaults.setEnabled(False)
+        self.action_Anima_Terminal = QAction(MainWindow)
+        self.action_Anima_Terminal.setObjectName(u"action_Anima_Terminal")
+        self.action_Anima_Terminal.setEnabled(False)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout_2 = QHBoxLayout(self.centralwidget)
@@ -473,11 +476,11 @@ class Ui_MainWindow(object):
         self.files_treeWidget = QTreeWidget(self.sound_tab)
         self.files_treeWidget.setObjectName(u"files_treeWidget")
         self.files_treeWidget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.files_treeWidget.setProperty("showDropIndicator", False)
+        self.files_treeWidget.setProperty(u"showDropIndicator", False)
         self.files_treeWidget.setUniformRowHeights(True)
         self.files_treeWidget.setSortingEnabled(True)
         self.files_treeWidget.setColumnCount(2)
-        self.files_treeWidget.header().setProperty("showSortIndicator", True)
+        self.files_treeWidget.header().setProperty(u"showSortIndicator", True)
 
         self.gridLayout_4.addWidget(self.files_treeWidget, 0, 0, 3, 1)
 
@@ -527,6 +530,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
         self.menuConnection.addAction(self.action_Refresh_Ports)
         self.menuConnection.addAction(self.action_Reload_Config)
+        self.menuConnection.addAction(self.action_Anima_Terminal)
         self.menuTroubleshooting.addAction(self.action_Show_Hide_Log)
         self.menuTroubleshooting.addAction(self.action_Debug_Mode)
         self.menuTroubleshooting.addAction(self.action_Save_Log_to_File)
@@ -584,6 +588,7 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.action_Reset_Saber_to_Defaults.setToolTip(QCoreApplication.translate("MainWindow", u"Reset saber to original default settings and sounds", None))
 #endif // QT_CONFIG(tooltip)
+        self.action_Anima_Terminal.setText(QCoreApplication.translate("MainWindow", u"Anima &Terminal", None))
         self.connection_groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Port:", None))
 #if QT_CONFIG(tooltip)

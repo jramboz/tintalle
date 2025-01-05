@@ -7,6 +7,7 @@ from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException, InvalidSaberResponseException
 from threadrunner import *
 from dialogs import *
+from animaterminal import AnimaTerminalWindow
 import version_compare as vc
 import firmware
 import color as Color
@@ -90,6 +91,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.action_Save_Colors.triggered.connect(self.save_colors_action_handler)
         self.action_Load_Colors.triggered.connect(self.load_colors_action_handler)
         self.action_Reset_Saber_to_Defaults.triggered.connect(self.reset_saber_to_defaults_action_handler)
+        self.action_Anima_Terminal.triggered.connect(self.anima_terminal_action_handler)
         
         self.action_Check_for_Latest_Firwmare.triggered.connect(self.fw_check_handler)
         self.action_Install_Firmware_from_File.triggered.connect(self.install_firmware_from_file_handler)
@@ -193,6 +195,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.action_Reset_Saber_to_Defaults.setEnabled(True)
             self.action_Save_Colors.setEnabled(True)
             self.action_Load_Colors.setEnabled(True)
+            self.action_Anima_Terminal.setEnabled(True)
         else: # disconnected
             # clear the contents
             self.clear_color_ui()
@@ -208,6 +211,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.action_Reset_Saber_to_Defaults.setEnabled(False)
             self.action_Save_Colors.setEnabled(False)
             self.action_Load_Colors.setEnabled(False)
+            self.action_Anima_Terminal.setEnabled(False)
 
     async def connect_button_handler(self):
         if self.sc: # if connected, disconnect
@@ -396,6 +400,11 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             error_handler(e, parent=self)
         finally:
             pd.finished()
+
+    def anima_terminal_action_handler(self):
+        terminal_window = AnimaTerminalWindow(self.sc, parent=self)
+        terminal_window.setModal(True)
+        terminal_window.show()
 
     # ------------------------- #
     # Logging and debug methods #
