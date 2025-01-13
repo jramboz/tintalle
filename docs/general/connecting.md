@@ -25,6 +25,9 @@ Tintallë will connect to the Anima and read its configuration.
 To disconnect from an Anima:
 
 - Click the **Disconnect** button.
+- If you have any unsaved changes, Tintallë will prompt you to **Save** the changes, **Discard / Don't Save** the changes, or **Cancel** the disconnection.
+
+![Unsaved Changes prompt](img/t_unsaved_changes.png)
 
 !!! failure "Do Not Turn Off or Disconnect the Cable"
     Always click the **Disconnect** button before turning off your Anima or removing the cable. Failure to properly disconnect could result in unsaved changes or unpredictable behavior for your Anima.
