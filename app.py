@@ -19,6 +19,7 @@ import asyncio
 import platform
 import resources_rc
 from datetime import datetime
+from copy import deepcopy
 import json
 import glob
 
@@ -215,7 +216,30 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     async def connect_button_handler(self):
         if self.sc: # if connected, disconnect
-            self.disconnect_saber()
+            # Check if config has changed
+            button: QMessageBox.StandardButton = None
+            if self.current_config != self.saber_config:
+                # Prompt user to save or discard changes.
+                button = QMessageBox.warning(
+                    self,
+                    "Unsaved Changes",
+                    "You have unsaved configuration changes. Do you want to save changes to the Anima or discard them?",
+                    buttons = QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                    defaultButton = QMessageBox.Discard
+                )
+                if button == QMessageBox.Save:
+                    w = Loading_Box(self, "Saving configuration to saber.")
+                    w.show()
+                    if self.current_config["bank"] != self.saber_config["bank"]:
+                        await self._save_all_colors(w, reload=False)
+                    if self.current_config["activeBank"] != self.saber_config["activeBank"]:
+                        await self.sc.set_active_bank(self.color_bank_select_box.currentIndex())
+                    if self.current_config["sounds"] != self.saber_config["sounds"]:
+                        await self._save_sound_settings(w, reload=False)
+                    w.close()
+            if button != QMessageBox.Cancel:
+                self.log.info("Disconnecting Anima.")
+                self.disconnect_saber()
         else: # try to connect
             try:
                 await self.connect_saber()
@@ -249,12 +273,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             w.show()
 
         self.set_ui_enabled(False)
-        self.saber_config= {}
+        self.saber_config = {}
 
         try:
             # TODO: make timeout customizable in settings
             self.saber_config = eval(await asyncio.wait_for(self.sc.read_config_ini(), timeout=10))
-            self.current_config = self.saber_config
+            self.current_config = deepcopy(self.saber_config)
             self.log.debug(f'Retrieved config.ini:\n{self.saber_config}')
             self.files_dict = await self.sc.list_files_on_saber()
             self.log.debug(f'Retrieved files from saber:\n{self.files_dict}')
@@ -672,13 +696,14 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
         asyncio.ensure_future(self._save_sound_settings(w))
 
-    async def _save_sound_settings(self, w: QDialog):
+    async def _save_sound_settings(self, w: QDialog, reload: bool = True):
         for effect, files in self.current_config['sounds'].items():
             if effect == 'soundengine': continue
             self.log.info(f'Setting sounds for effect: {effect}')
             await self.sc.set_sounds_for_effect(effect, files)
             await asyncio.sleep(1)
-        asyncio.ensure_future(self.reload_saber_configuration(w))
+        if reload:
+            asyncio.ensure_future(self.reload_saber_configuration(w))
     
     async def auto_assign_effects(self, reload_config:bool = True):
         '''Automatically assign sound files to effects for the files currently on the saber.'''
@@ -881,7 +906,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def update_current_config_from_gui(self):
         '''Updates the stored configuration when the GUI elements are changed.'''
-        self.current_config['activeBank'] = self.color_bank_select_box.currentIndex() +1
+        self.current_config['activeBank'] = self.color_bank_select_box.currentIndex()
         color = self.get_current_color()
         self.current_config['bank'][self.color_bank_select_box.currentIndex()][self.get_selected_effect()] = color
 
@@ -903,7 +928,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
         asyncio.ensure_future(self._save_all_colors(w))
 
-    async def _save_all_colors(self, w: QDialog):
+    async def _save_all_colors(self, w: QDialog, reload: bool = True):
         # TODO: implement progress bar that fills up as each is saved
         self.log.debug('Saving all color banks to saber.')
         count = self.color_bank_select_box.count()
@@ -911,7 +936,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             await self.save_color_bank(i, set_active=False)
             await asyncio.sleep(1)
 
-        asyncio.ensure_future(self.reload_saber_configuration(w))
+        if reload:
+            asyncio.ensure_future(self.reload_saber_configuration(w))
 
     async def save_color_bank(self, bank: int, set_active=True):
         self.log.info(f'Saving color bank #{bank+1} to saber.')
