@@ -8,6 +8,7 @@ theme:
     - navigation.instant.progress
     - search.suggest
     - navigation.footer
+    - navigation.indexes
   
   palette:
     # Palette toggle for automatic mode
@@ -54,6 +55,4 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
-nav:
-  - index.md
-  - installation.md
+# See .pages for nav
