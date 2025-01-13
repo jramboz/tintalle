@@ -1,1 +1,5 @@
 title: General Features
+
+nav:
+    - searching.md
+    - connecting.md
