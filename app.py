@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QLabel, QFileDialog, QTreeWidgetItem, QCheckBox
 from PySide6.QtGui import QColor, QPixmap, QIcon, QColorConstants
 import PySide6.QtCore as QtCore
-from PySide6.QtCore import Qt, QThread
+from PySide6.QtCore import Qt
 from PySide6 import QtAsyncio
 from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException, InvalidSaberResponseException
@@ -17,7 +17,6 @@ import sys
 import os
 import asyncio
 import platform
-import time
 import resources_rc
 from datetime import datetime
 from copy import deepcopy
@@ -142,6 +141,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         dlg.exec()
     
     async def _close_window(self):
+        '''When window is about to close, disconnect Anima first. This will also check for unsaved changes.'''
         # Try to disconnect, prompt to save changes if applicable
         await self.disconnect_saber()
         if not self.sc:  # if disconnect was successful, continue with close
@@ -366,19 +366,31 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 defaultButton = QMessageBox.Cancel
             )
             if button == QMessageBox.Save:
-                w = Loading_Box(self, "Saving configuration to saber.")
-                w.show()
-                if self.current_config["bank"] != self.saber_config["bank"]:
-                    await self._save_all_colors(w, reload=False)
-                if self.current_config["activeBank"] != self.saber_config["activeBank"]:
-                    await self.sc.set_active_bank(self.color_bank_select_box.currentIndex())
-                if self.current_config["sounds"] != self.saber_config["sounds"]:
-                    await self._save_sound_settings(w, reload=False)
-                w.close()
+                await self.save_all_changes()
+
         if button != QMessageBox.Cancel:
             self.log.info("Disconnecting Anima.")
             self.sc = None
             self.display_connection_status(SCStatus.DISCONNECTED)
+
+    async def save_all_changes(self):
+        '''Writes any unsaved configuration changes to the attached Anima.'''
+        w = Loading_Box(self, "Saving configuration to saber.")
+        w.show()
+
+        # Save only what's been changed
+        for bank, _ in enumerate(self.current_config["bank"]):
+            if self.current_config["bank"][bank] != self.saber_config["bank"][bank]:
+                await self.save_color_bank(bank, set_active=False)
+        
+        if self.current_config["activeBank"] != self.saber_config["activeBank"]:
+            await self.set_active_bank(self.current_config["activeBank"])
+        
+        for effect in self.current_config["sounds"]:
+            if effect not in self.saber_config["sounds"] or self.current_config["sounds"][effect] != self.saber_config["sounds"][effect]:
+                await self._save_sound_settings(w, {effect: self.current_config["sounds"][effect]}, reload=False)
+        
+        w.close()
 
     def reload_config_action_handler(self):
         button = QMessageBox.warning(
@@ -709,17 +721,17 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         # TODO: add a box with a progress bar showing which effect is being saved
         w.show()
 
-        asyncio.ensure_future(self._save_sound_settings(w))
+        asyncio.ensure_future(self._save_sound_settings(w, self.current_config['sounds']))
 
-    async def _save_sound_settings(self, w: QDialog, reload: bool = True):
-        for effect, files in self.current_config['sounds'].items():
+    async def _save_sound_settings(self, w: QDialog, sounds: dict, reload: bool = True):
+        for effect, files in sounds.items():
             if effect == 'soundengine': continue
             self.log.info(f'Setting sounds for effect: {effect}')
             await self.sc.set_sounds_for_effect(effect, files)
             await asyncio.sleep(1)
         if reload:
             asyncio.ensure_future(self.reload_saber_configuration(w))
-    
+
     async def auto_assign_effects(self, reload_config:bool = True):
         '''Automatically assign sound files to effects for the files currently on the saber.'''
         w = Loading_Box(self, "Automatically setting sound effects\nbased on the default naming scheme.")
@@ -963,12 +975,17 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
         await self._set_colors(bank, m_color, cl_color, s_color, set_active)
 
+    async def set_active_bank(self, bank: int):
+        '''Sets the provided bank number as the active bank on the Anima.'''
+        self.log.info(f"Setting active color bank to #{bank + 1}")
+        await self.sc.set_active_bank(bank)
+
     async def _set_colors(self, bank: int, m_color: dict, cl_color: dict, s_color:dict, set_active=True):
         try:
             await self.sc.set_color(bank, "color", m_color['red'], m_color['green'], m_color['blue'], m_color['white'])
             await self.sc.set_color(bank, "clash", cl_color['red'], cl_color['green'], cl_color['blue'], cl_color['white'])
             await self.sc.set_color(bank, "swing", s_color['red'], s_color['green'], s_color['blue'], s_color['white'])
-            if set_active: await self.sc.set_active_bank(bank)
+            if set_active: await self.set_active_bank(bank)
         except Exception as e:
             error_handler(e)
     
