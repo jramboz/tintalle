@@ -225,7 +225,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                     "Unsaved Changes",
                     "You have unsaved configuration changes. Do you want to save changes to the Anima or discard them?",
                     buttons = QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                    defaultButton = QMessageBox.Discard
+                    defaultButton = QMessageBox.Cancel
                 )
                 if button == QMessageBox.Save:
                     w = Loading_Box(self, "Saving configuration to saber.")
