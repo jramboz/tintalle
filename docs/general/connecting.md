@@ -26,9 +26,6 @@ To disconnect from an Anima:
 
 - Click the **Disconnect** button.
 
-!!! warning
-    If you have made any configuration changes, make sure you have saved them to the Anima before disconnecting! Otherwise, your changes will be lost.
-
 !!! failure "Do Not Turn Off or Disconnect the Cable"
     Always click the **Disconnect** button before turning off your Anima or removing the cable. Failure to properly disconnect could result in unsaved changes or unpredictable behavior for your Anima.
 
