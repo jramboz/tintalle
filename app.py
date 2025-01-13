@@ -216,30 +216,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     async def connect_button_handler(self):
         if self.sc: # if connected, disconnect
-            # Check if config has changed
-            button: QMessageBox.StandardButton = None
-            if self.current_config != self.saber_config:
-                # Prompt user to save or discard changes.
-                button = QMessageBox.warning(
-                    self,
-                    "Unsaved Changes",
-                    "You have unsaved configuration changes. Do you want to save changes to the Anima or discard them?",
-                    buttons = QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                    defaultButton = QMessageBox.Cancel
-                )
-                if button == QMessageBox.Save:
-                    w = Loading_Box(self, "Saving configuration to saber.")
-                    w.show()
-                    if self.current_config["bank"] != self.saber_config["bank"]:
-                        await self._save_all_colors(w, reload=False)
-                    if self.current_config["activeBank"] != self.saber_config["activeBank"]:
-                        await self.sc.set_active_bank(self.color_bank_select_box.currentIndex())
-                    if self.current_config["sounds"] != self.saber_config["sounds"]:
-                        await self._save_sound_settings(w, reload=False)
-                    w.close()
-            if button != QMessageBox.Cancel:
-                self.log.info("Disconnecting Anima.")
-                self.disconnect_saber()
+            await self.disconnect_saber()
         else: # try to connect
             try:
                 await self.connect_saber()
@@ -300,7 +277,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 Please try turning your Anima off and back on, then try again.''',
                 QMessageBox.Close,
                 parent=self)
-            self.disconnect_saber()
+            await self.disconnect_saber()
             self.log.error('Connection timed out while reading configuration file from Anima.')
             box.exec()
         except Exception as e:
@@ -360,10 +337,33 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.usedspace_label.setText('Used Space: ' + getHumanReadableSize(self.space_info['used']))
         self.totalspace_label.setText('Total Space: ' + getHumanReadableSize(self.space_info['total']))
 
-    def disconnect_saber(self):
+    async def disconnect_saber(self):
         '''Disconnect saber and perform any necessary cleanup'''
-        self.sc = None
-        self.display_connection_status(SCStatus.DISCONNECTED)
+        # Check if config has changed
+        button: QMessageBox.StandardButton = None
+        if self.current_config != self.saber_config:
+            # Prompt user to save or discard changes.
+            button = QMessageBox.warning(
+                self,
+                "Unsaved Changes",
+                "You have unsaved configuration changes. Do you want to save changes to the Anima or discard them?",
+                buttons = QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                defaultButton = QMessageBox.Cancel
+            )
+            if button == QMessageBox.Save:
+                w = Loading_Box(self, "Saving configuration to saber.")
+                w.show()
+                if self.current_config["bank"] != self.saber_config["bank"]:
+                    await self._save_all_colors(w, reload=False)
+                if self.current_config["activeBank"] != self.saber_config["activeBank"]:
+                    await self.sc.set_active_bank(self.color_bank_select_box.currentIndex())
+                if self.current_config["sounds"] != self.saber_config["sounds"]:
+                    await self._save_sound_settings(w, reload=False)
+                w.close()
+        if button != QMessageBox.Cancel:
+            self.log.info("Disconnecting Anima.")
+            self.sc = None
+            self.display_connection_status(SCStatus.DISCONNECTED)
 
     def reload_config_action_handler(self):
         button = QMessageBox.warning(
