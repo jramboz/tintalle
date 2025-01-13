@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QLabel, QFileDialog, QTreeWidgetItem, QCheckBox
 from PySide6.QtGui import QColor, QPixmap, QIcon, QColorConstants
 import PySide6.QtCore as QtCore
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread
 from PySide6 import QtAsyncio
 from ui_mainwindow import Ui_MainWindow
 from py2saber import Saber_Controller, NoAnimaSaberException, InvalidSaberResponseException
@@ -17,6 +17,7 @@ import sys
 import os
 import asyncio
 import platform
+import time
 import resources_rc
 from datetime import datetime
 from copy import deepcopy
@@ -139,6 +140,20 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def about_action_handler(self):
         dlg = AboutDialog(script_version, script_authors, script_repo, self)
         dlg.exec()
+    
+    async def _close_window(self):
+        # Try to disconnect, prompt to save changes if applicable
+        await self.disconnect_saber()
+        if not self.sc:  # if disconnect was successful, continue with close
+            self.close()
+
+    def closeEvent(self, event):
+        if self.sc:
+            # If connected, wait for disconnect
+            asyncio.ensure_future(self._close_window())
+            event.ignore()
+        else:
+            super().closeEvent(event)
 
     # --------------------------------- #
     # Saber connection handling methods #
