@@ -22,7 +22,7 @@ The **Output Window** will echo the sent command in yellow text. Any response fr
 !!! note
     You will not be able to access any other features of Tintallë while the Anima Terminal is open. This is by design, to ensure that no other features attempt to use the serial connection at the same time.
 
-When you are finished, close the Anima Terminal window.
+When you are finished, close the Anima Terminal window. Tintallë will automatically [reload the configuration from the Anima](http://127.0.0.1:8000/general/connecting.html#reloading-the-configuration) in case you made any manual changes.
 
 ## Command Syntax
 
