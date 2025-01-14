@@ -21,15 +21,27 @@ class AnimaTerminalWindow(Ui_AnimaTerminalWindow, QDialog):
         self.default_format = self.terminalDisplay.currentCharFormat()
         self.reader_task = asyncio.create_task(self.reader())
 
-    def closeEvent(self, event):
+    async def _close_window(self, event):
         self.reader_task.cancel()
-        event.accept()
+        while not self.reader_task.done():
+            await asyncio.sleep(0.5)
+        self.close()
+
+    def closeEvent(self, event):
+        if not self.reader_task.done():
+            asyncio.ensure_future(self._close_window(event))
+            event.ignore()
+        else:
+            event.accept()
 
     async def reader(self):
-        while True:
-            r = await self.sc._ser.read_async()
-            if r:
-                await self._append_text(r.decode())
+        try:
+            while True:
+                r = await self.sc._ser.read_async()
+                if r:
+                    await self._append_text(r.decode())
+        except asyncio.CancelledError:
+            return
 
     async def _append_text(self, text: str):
         cursor = self.terminalDisplay.textCursor()
