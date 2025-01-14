@@ -472,7 +472,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def anima_terminal_action_handler(self):
         terminal_window = AnimaTerminalWindow(self.sc, parent=self)
         terminal_window.setModal(True)
-        terminal_window.show()
+        terminal_window.exec()
+        asyncio.ensure_future(self.reload_saber_configuration())
 
     # ------------------------- #
     # Logging and debug methods #
