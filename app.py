@@ -755,7 +755,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     # ------------------------- #
 
     def anima_is_NXT(self):
-        if self.saber_info['version'][:4] == 'NXT_':
+        if self.saber_info and self.saber_info['version'][:4] == 'NXT_':
             return True
         return False
     
