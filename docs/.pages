@@ -2,4 +2,5 @@ nav:
     - index.md
     - installation.md
     - general
+    - firmware
     - troubleshooting

@@ -43,6 +43,7 @@ plugins:
 
 markdown_extensions:
   - admonition
+  - pymdownx.details
   - pymdownx.keys:
       separator: +
       strict: false
