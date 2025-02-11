@@ -4,7 +4,7 @@ Although your Anima comes with seven pre-configured [color banks](banks.md), it 
 
 ## Anima LEDs
 
-Your Anima projects colors using four LEDs located in the emitter at the base of your blade. Each LED emits a different color: <span style="color:red">**Red**</span>, <span style="color:green">**Green**</span>, <span style="color:blue">**Blue**</span>, or <span style="color:white;background-color:black">**White**</span>. By adjusting the brightness of each LED, you can mix almost any shade!
+Your Anima projects colors using four LEDs located in the emitter at the base of your blade. Each LED emits a different color: **<span style="color:red">Red</span>**, **<span style="color:green">Green</span>**, **<span style="color:blue">Blue</span>**, or **<span style="color:white;background-color:black">White</span>**. By adjusting the brightness of each LED, you can mix almost any shade!
 
 For example, to make a purple color, you might increase the Red and Blue LEDs, while turning off the Green and White LEDs entirely. Or to make a lighter purple, you could add in a little bit of White.
 
