@@ -1,5 +1,7 @@
 site_name: Tintallë User Guide
 repo_url: https://github.com/jramboz/tintalle
+extra_css:
+  - stylesheets/extra.css
 theme:
   name: material
   logo: img/tintalle.png
