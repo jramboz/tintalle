@@ -1,6 +1,7 @@
 title: Color Management
 
 nav:
+    - index.md
     - overview.md
     - banks.md
     - effects.md
