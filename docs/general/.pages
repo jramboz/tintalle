@@ -1,6 +1,7 @@
 title: General Features
 
 nav:
+    - index.md
     - searching.md
     - connecting.md
     - terminal.md
