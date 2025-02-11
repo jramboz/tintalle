@@ -2,5 +2,6 @@ nav:
     - index.md
     - installation.md
     - general
+    - color
     - firmware
     - troubleshooting
