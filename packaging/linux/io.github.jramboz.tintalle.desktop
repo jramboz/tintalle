@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Tintallë
+GenericName=Lightsaber Manager
+Comment=Manage OpenCore-based lightsabers
+Exec=tintalle
+Icon=tintalle
+Terminal=false
+Categories=Utility;
+StartupNotify=true

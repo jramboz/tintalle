@@ -1,0 +1,34 @@
+.TH TINTALLE 1 "June 2026" "Tintalle" "User Commands"
+.SH NAME
+tintalle \- manage compatible OpenCore-based lightsabers
+.SH SYNOPSIS
+.B tintalle
+.SH DESCRIPTION
+.B Tintalle
+is a graphical application for managing compatible OpenCore-based
+lightsabers. It can read and modify colors, sounds, effects and files
+stored on supported saber controllers.
+.SH DEVICE ACCESS
+On Debian and Ubuntu systems, the user may need to belong to the
+.B dialout
+group to access devices such as
+.IR /dev/ttyACM0 .
+.PP
+The user can be added to the group with:
+.PP
+.nf
+sudo usermod -aG dialout "$USER"
+.fi
+.PP
+The session must then be restarted.
+.SH FILES
+.TP
+.I /usr/lib/tintalle
+Application files and bundled runtime.
+.TP
+.I /usr/bin/tintalle
+Application launcher.
+.SH AUTHORS
+Tintalle contributors.
+.SH BUGS
+Report issues through the upstream Tintalle repository.
