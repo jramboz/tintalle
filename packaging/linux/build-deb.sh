@@ -32,11 +32,13 @@ DOC_DIR="${PACKAGE_ROOT}/usr/share/doc/${PACKAGE_NAME}"
 MAN_DIR="${PACKAGE_ROOT}/usr/share/man/man1"
 LINTIAN_DIR="${PACKAGE_ROOT}/usr/share/lintian/overrides"
 
-MAINTAINER_NAME="${DEBFULLNAME:-Helios}"
+MAINTAINER_NAME="${DEBFULLNAME:-}"
 MAINTAINER_EMAIL="${DEBEMAIL:-}"
 
-if [[ -z "${MAINTAINER_EMAIL}" ]]; then
-    die 'DEBEMAIL is not set. Example: export DEBEMAIL="email@example.com"'
+if [[ -z "${MAINTAINER_NAME}" || -z "${MAINTAINER_EMAIL}" ]]; then
+    die 'DEBFULLNAME and DEBEMAIL must be set. Example:
+  export DEBFULLNAME="Your Name"
+  export DEBEMAIL="email@example.com"'
 fi
 
 MAINTAINER="${MAINTAINER_NAME} <${MAINTAINER_EMAIL}>"
