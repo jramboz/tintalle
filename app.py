@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QDialog, QLabel, QFileDialog, QTreeWidgetItem, QCheckBox
-from PySide6.QtGui import QColor, QPixmap, QIcon, QColorConstants
+from PySide6.QtGui import QColor, QPixmap, QIcon, QColorConstants, QDesktopServices
 import PySide6.QtCore as QtCore
 from PySide6.QtCore import Qt
 from PySide6 import QtAsyncio
@@ -9,6 +9,7 @@ from threadrunner import *
 from dialogs import *
 from animaterminal import AnimaTerminalWindow
 import version_compare as vc
+import update_checker as uc
 import firmware
 import color as Color
 from enum import Enum, auto
@@ -74,6 +75,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.threadpool = QtCore.QThreadPool()
+        self._update_check_task = None
 
         # Initialize logging
         self.logTextBox.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
@@ -136,10 +138,95 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         # After this, everything else should be okay to use asyncio.ensure_future()
         asyncio.run(self.update_ports())
 
+        # Check for application updates once the Qt event loop is running.
+        QtCore.QTimer.singleShot(0, self._schedule_update_check)
+
     def about_action_handler(self):
         dlg = AboutDialog(script_version, script_authors, script_repo, self)
         dlg.exec()
+
+    def _schedule_update_check(self) -> None:
+        """Schedule the update check after the Qt event loop has started."""
+
+        self._update_check_task = asyncio.ensure_future(
+            self._check_for_updates()
+        )
+
+    async def _check_for_updates(self) -> None:
+        """Check GitHub for a newer Tintallë release."""
+
+        self.log.debug(
+            "Checking for Tintallë application updates."
+        )
+
+        try:
+            release = await asyncio.to_thread(
+                uc.find_available_update,
+                script_version,
+            )
+        except uc.UpdateCheckError as exc:
+            # Network errors should not interrupt or disturb application startup.
+            self.log.debug(
+                "Unable to check for Tintallë updates: %s",
+                exc,
+            )
+            return
+        except Exception:
+            # Unexpected implementation errors should be recorded, but should
+            # still not prevent the application from starting.
+            self.log.exception(
+                "Unexpected error while checking for Tintallë updates."
+            )
+            return
+
+        if release is None:
+            self.log.debug(
+                "The installed Tintallë version is up to date."
+            )
+            return
+
+        self.log.info(
+            "A newer Tintallë release is available: %s",
+            release.version,
+        )
     
+        self._show_update_available_dialog(release)
+
+    def _show_update_available_dialog(
+        self,
+        release: uc.ReleaseInfo,
+    ) -> None:
+        """Notify the user that a newer Tintallë release is available."""
+
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle("Update Available")
+        dialog.setIcon(QMessageBox.Information)
+        dialog.setText(
+            "A newer version of Tintallë is available."
+        )
+        dialog.setInformativeText(
+            f"Installed version: {script_version}\n"
+            f"Latest version: {release.version}\n\n"
+            "Would you like to open the release page?"
+        )
+        dialog.setStandardButtons(
+            QMessageBox.Open | QMessageBox.Close
+        )
+        dialog.setDefaultButton(QMessageBox.Open)
+
+        result = dialog.exec()
+
+        if result != QMessageBox.Open:
+            return
+
+        release_url = QtCore.QUrl(release.url)
+
+        if not QDesktopServices.openUrl(release_url):
+            self.log.warning(
+                "Unable to open the Tintallë release page: %s",
+                release.url,
+            )
+
     async def _close_window(self):
         '''When window is about to close, disconnect Anima first. This will also check for unsaved changes.'''
         # Try to disconnect, prompt to save changes if applicable
