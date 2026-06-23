@@ -1,0 +1,16 @@
+# Tintallë is distributed as a self-contained PyInstaller bundle.
+# PyInstaller intentionally embeds the Python runtime and the shared
+# libraries required by the application.
+tintalle binary: embedded-library *[usr/lib/tintalle/_internal/*]
+
+# These binaries and shared libraries are supplied by the Python,
+# PySide6 and Qt distributions collected by PyInstaller. They are
+# shipped unchanged to avoid damaging the generated runtime bundle.
+tintalle binary: unstripped-binary-or-object [usr/lib/tintalle/_internal/*]
+
+# The main executable is the prebuilt PyInstaller bootloader.
+tintalle binary: hardening-no-pie [usr/lib/tintalle/Tintalle]
+
+# Lintian cannot fully resolve the prerequisites of libraries loaded
+# from within the private PyInstaller runtime directory.
+tintalle binary: shared-library-lacks-prerequisites [usr/lib/tintalle/_internal/*]
