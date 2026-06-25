@@ -14,3 +14,8 @@ tintalle binary: hardening-no-pie [usr/lib/tintalle/Tintalle]
 # Lintian cannot fully resolve the prerequisites of libraries loaded
 # from within the private PyInstaller runtime directory.
 tintalle binary: shared-library-lacks-prerequisites [usr/lib/tintalle/_internal/*]
+
+# Tintallë is distributed through GitHub Releases and is not currently
+# intended for inclusion in the official Debian archive, so there is no
+# Debian ITP bug to close.
+tintalle binary: initial-upload-closes-no-bugs
