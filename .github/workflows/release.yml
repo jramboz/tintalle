@@ -1,0 +1,456 @@
+name: Build and publish release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/release.yml"
+      - "app.py"
+      - "requirements.txt"
+      - "build-requirements.txt"
+      - "tintalle-win.spec"
+      - "tintalle-linux.spec"
+      - "tintalle-mac.spec"
+      - "tintalle.iss"
+      - ".bumpversion.cfg"
+      - "version_compare.py"
+      - "update_checker.py"
+      - "tests/**"
+      - "packaging/linux/**"
+      - "img/**"
+      - "OpenCore_OEM/**"
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: >
+          Version to build without the leading v. Leave empty to use
+          script_version from app.py.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify release
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    outputs:
+      version: ${{ steps.release-version.outputs.version }}
+      tag: ${{ steps.release-version.outputs.tag }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install requests
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Check Python syntax
+        run: |
+          python -m compileall -q \
+            app.py \
+            version_compare.py \
+            update_checker.py \
+            tests
+
+      - name: Validate release version
+        id: release-version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+
+          def extract_version(
+              filename: str,
+              pattern: str,
+              description: str,
+          ) -> str:
+              content = Path(filename).read_text(encoding="utf-8")
+              match = re.search(pattern, content, re.MULTILINE)
+
+              if match is None:
+                  raise SystemExit(
+                      f"Unable to find {description} in {filename}."
+                  )
+
+              return match.group(1)
+
+
+          app_version = extract_version(
+              "app.py",
+              r"^script_version\s*=\s*['\"]([^'\"]+)['\"]",
+              "script_version",
+          )
+
+          installer_version = extract_version(
+              "tintalle.iss",
+              r'^#define\s+MyAppVersion\s+"([^"]+)"',
+              "MyAppVersion",
+          )
+
+          mac_version = extract_version(
+              "tintalle-mac.spec",
+              r'["\']CFBundleShortVersionString["\']\s*:\s*'
+              r'["\']([^"\']+)["\']',
+              "CFBundleShortVersionString",
+          )
+
+          bumpversion_version = extract_version(
+              ".bumpversion.cfg",
+              r"^current_version\s*=\s*(\S+)",
+              "current_version",
+          )
+
+          event_name = os.environ["EVENT_NAME"]
+          ref_name = os.environ["REF_NAME"]
+          requested_version = os.environ.get(
+              "REQUESTED_VERSION",
+              "",
+          ).strip()
+
+          if event_name == "push":
+              expected_version = ref_name.removeprefix("v")
+          elif event_name == "workflow_dispatch" and requested_version:
+              expected_version = requested_version.removeprefix("v")
+          else:
+              expected_version = app_version
+
+          if re.fullmatch(
+              r"[0-9]+\.[0-9]+\.[0-9]+",
+              expected_version,
+          ) is None:
+              raise SystemExit(
+                  "Release versions must use the X.Y.Z format. "
+                  f"Received: {expected_version!r}"
+              )
+
+          version_locations = {
+              "app.py": app_version,
+              "tintalle.iss": installer_version,
+              "tintalle-mac.spec": mac_version,
+              ".bumpversion.cfg": bumpversion_version,
+          }
+
+          mismatches = {
+              filename: version
+              for filename, version in version_locations.items()
+              if version != expected_version
+          }
+
+          if mismatches:
+              details = "\n".join(
+                  f"  {filename}: {version}"
+                  for filename, version in mismatches.items()
+              )
+
+              raise SystemExit(
+                  f"Expected release version {expected_version}, "
+                  "but found mismatches:\n"
+                  f"{details}"
+              )
+
+          output_file = Path(os.environ["GITHUB_OUTPUT"])
+
+          with output_file.open("a", encoding="utf-8") as output:
+              output.write(f"version={expected_version}\n")
+              output.write(f"tag=v{expected_version}\n")
+
+          print(f"Release version validated: {expected_version}")
+          PY
+
+  build-linux:
+    name: Build Debian package
+    needs:
+      - verify
+
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    env:
+      DEBFULLNAME: ${{ vars.DEBFULLNAME }}
+      DEBEMAIL: ${{ vars.DEBEMAIL }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            build-requirements.txt
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            file \
+            lintian \
+            patchelf \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-render-util0
+
+      - name: Install Python build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r build-requirements.txt
+
+      - name: Build PyInstaller distribution
+        run: |
+          pyinstaller \
+            --clean \
+            --noconfirm \
+            tintalle-linux.spec
+
+      - name: Build Debian package
+        env:
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+        shell: bash
+        run: |
+          DEBIAN_VERSION="${RELEASE_VERSION}-1"
+
+          ./packaging/linux/build-deb.sh "${DEBIAN_VERSION}"
+
+      - name: Run Lintian
+        run: lintian dist-packages/*.deb
+
+      - name: Upload Linux release asset
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-linux
+          path: dist-packages/*.deb
+          if-no-files-found: error
+          retention-days: 14
+
+  build-windows:
+    name: Build Windows installer
+    needs:
+      - verify
+
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            build-requirements.txt
+
+      - name: Install Python build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r build-requirements.txt
+
+      - name: Build PyInstaller distribution
+        shell: pwsh
+        run: |
+          pyinstaller `
+            --clean `
+            --noconfirm `
+            tintalle-win.spec
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          $iscc = (
+              "${env:ProgramFiles(x86)}" +
+              "\Inno Setup 6\ISCC.exe"
+          )
+
+          if (-not (Test-Path $iscc)) {
+              throw "Inno Setup compiler was not found at: $iscc"
+          }
+
+          & $iscc "tintalle.iss"
+
+          if ($LASTEXITCODE -ne 0) {
+              throw (
+                  "Inno Setup failed with exit code " +
+                  "$LASTEXITCODE"
+              )
+          }
+
+      - name: Verify Windows installer
+        env:
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+        shell: pwsh
+        run: |
+          $installer = (
+              "dist\tintalle-" +
+              $env:RELEASE_VERSION +
+              ".exe"
+          )
+
+          if (-not (Test-Path $installer)) {
+              throw "Expected installer was not found: $installer"
+          }
+
+          Write-Host "Windows installer generated: $installer"
+
+      - name: Upload Windows release asset
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-windows
+          path: >-
+            dist/tintalle-${{
+              needs.verify.outputs.version
+            }}.exe
+          if-no-files-found: error
+          retention-days: 14
+
+  bundle:
+    name: Prepare release assets
+    needs:
+      - build-linux
+      - build-windows
+
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Download Linux asset
+        uses: actions/download-artifact@v8
+        with:
+          name: release-linux
+          path: release-assets
+
+      - name: Download Windows asset
+        uses: actions/download-artifact@v8
+        with:
+          name: release-windows
+          path: release-assets
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd release-assets
+
+          mapfile -d '' release_files < <(
+              find . \
+                  -maxdepth 1 \
+                  -type f \
+                  ! -name "SHA256SUMS" \
+                  -print0 |
+                  sort -z
+          )
+
+          if [[ "${#release_files[@]}" -eq 0 ]]; then
+              echo "No release files were generated." >&2
+              exit 1
+          fi
+
+          sha256sum "${release_files[@]}" > SHA256SUMS
+
+          echo "Release assets:"
+          ls -lh
+
+          echo
+          echo "Checksums:"
+          cat SHA256SUMS
+
+      - name: Upload complete release bundle
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-assets
+          path: release-assets/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish GitHub release
+
+    if: >
+      github.event_name == 'push' &&
+      startsWith(github.ref, 'refs/tags/v')
+
+    needs:
+      - verify
+      - bundle
+
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: release-assets
+          path: release-assets
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.verify.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+        shell: bash
+        run: |
+          mapfile -d '' release_files < <(
+              find release-assets \
+                  -maxdepth 1 \
+                  -type f \
+                  -print0 |
+                  sort -z
+          )
+
+          if [[ "${#release_files[@]}" -eq 0 ]]; then
+              echo "No release assets were found." >&2
+              exit 1
+          fi
+
+          gh release create "${RELEASE_TAG}" \
+              "${release_files[@]}" \
+              --verify-tag \
+              --generate-notes \
+              --title "Tintallë ${RELEASE_VERSION}"
