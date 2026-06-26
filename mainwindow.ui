@@ -838,7 +838,7 @@
   </action>
   <action name="action_Check_for_Latest_Firwmare">
    <property name="text">
-    <string>&amp;Check for Latest Firwmare</string>
+    <string>&amp;Check for Latest Firmware</string>
    </property>
   </action>
   <action name="action_Install_Firmware_from_File">

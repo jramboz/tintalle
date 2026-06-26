@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.1
+## Created by: Qt User Interface Compiler version 6.11.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -596,7 +596,7 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.refresh_ports_button.setText("")
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Status:", None))
-        self.status_label.setText(QCoreApplication.translate("MainWindow", u"Searching...", None))
+        self.status_label.setText(QCoreApplication.translate("MainWindow", u"SEARCHING...", None))
         self.connect_button.setText(QCoreApplication.translate("MainWindow", u"Connect", None))
         self.color_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Color Select", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"White", None))
@@ -641,8 +641,8 @@ class Ui_MainWindow(object):
         self.usedspace_label.setText(QCoreApplication.translate("MainWindow", u"Used Space: --- MB", None))
         self.totalspace_label.setText(QCoreApplication.translate("MainWindow", u"Total Space: --- MB", None))
         ___qtreewidgetitem = self.files_treeWidget.headerItem()
-        ___qtreewidgetitem.setText(1, QCoreApplication.translate("MainWindow", u"Size", None));
-        ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"File Name", None));
+        ___qtreewidgetitem.setText(1, QCoreApplication.translate("MainWindow", u"Size", None))
+        ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"File Name", None))
         self.content_tabWidget.setTabText(self.content_tabWidget.indexOf(self.sound_tab), QCoreApplication.translate("MainWindow", u"Sound", None))
         self.logTextBox.setPlaceholderText("")
         self.menuConnection.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))
