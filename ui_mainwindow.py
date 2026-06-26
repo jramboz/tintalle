@@ -567,7 +567,7 @@ class Ui_MainWindow(object):
         self.action_Debug_Mode.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+D", None))
 #endif // QT_CONFIG(shortcut)
         self.action_Reload_Config.setText(QCoreApplication.translate("MainWindow", u"Reload &Config", None))
-        self.action_Check_for_Latest_Firwmare.setText(QCoreApplication.translate("MainWindow", u"&Check for Latest Firwmare", None))
+        self.action_Check_for_Latest_Firwmare.setText(QCoreApplication.translate("MainWindow", u"&Check for Latest Firmware", None))
         self.action_Install_Firmware_from_File.setText(QCoreApplication.translate("MainWindow", u"&Install Firmware from File...", None))
         self.action_about.setText(QCoreApplication.translate("MainWindow", u"&About Tintall\u00eb", None))
         self.action_Save_Log_to_File.setText(QCoreApplication.translate("MainWindow", u"Save Log to File...", None))
