@@ -680,10 +680,15 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             f'tintalle-{datetime.now().strftime('%m-%d-%Y-%H%M%S')}.log'
         )
         filename = QFileDialog.getSaveFileName(
-            self, 
-            'Save Log As...',
+            self,
+            self.tr('Save Log As...'),
             default,
-            'Log Files (*.log)')[0]
+            self.tr('Log Files (*.log)'),
+        )[0]
+
+        if not filename:
+            return
+
         self.log.debug(f'Saving log output to file {filename}')
         
         if filename:
@@ -704,9 +709,14 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             'config.ini'
         )
         filename = QFileDialog.getSaveFileName(
-            self, 
-            'Save config.ini As...',
-            default)[0]
+            self,
+            self.tr('Save config.ini As...'),
+            default,
+        )[0]
+
+        if not filename:
+            return
+
         self.log.debug(f'Saving config.ini to file {filename}')
 
         if filename:
@@ -726,6 +736,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     #         self, 
     #         'Save config.ini As...',
     #         default)[0]
+
+    #     if not filename:
+    #         return
     #     self.log.debug(f'Saving config.ini to file {filename}')
 
     #     if filename:
@@ -818,7 +831,11 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self,
             filter=self.tr('RAW Sound Files (*.RAW)'),
         )[0]
-        if(files):
+
+        if not files:
+            return
+
+        if files:
             files.sort()
             if self.anima_is_NXT():
                 # move any BEEP.RAW files to last
@@ -1140,7 +1157,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def color_save_button_handler(self):
         '''Write the values of the currently displayed bank to the saber.'''
-        w = Loading_Box(self, "Saving configuration to saber.")
+        w = Loading_Box(self, self.tr('Saving configuration to saber.'))
         w.show()
 
         asyncio.ensure_future(self._save_current_color(w))
@@ -1151,7 +1168,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def save_all_colors_button_handler(self):
         '''Write the values of all banks to the saber.'''
-        w = Loading_Box(self, "Saving configuration to saber.")
+        w = Loading_Box(self, self.tr('Saving configuration to saber.'))
         w.show()
 
         asyncio.ensure_future(self._save_all_colors(w))
@@ -1196,9 +1213,14 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             'saber_colors.txt'
         )
         filename = QFileDialog.getSaveFileName(
-            self, 
-            'Save Colors As...',
-            default)[0]
+            self,
+            self.tr('Save Colors As...'),
+            default,
+        )[0]
+
+        if not filename:
+            return
+
         self.log.debug(f'Saving colors to file {filename}')
 
         if filename:
@@ -1216,9 +1238,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def load_colors_action_handler(self):
         filename = QFileDialog.getOpenFileName(
             self,
-            'Load Colors From...',
-            os.path.expanduser('~')
+            self.tr('Load Colors From...'),
+            os.path.expanduser('~'),
         )[0]
+
+        if not filename:
+            return
 
         if filename:
             try:
@@ -1228,7 +1253,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                     self.current_config['bank'] = color_dict['bank']
                     self.update_ui_with_config()
             except (json.JSONDecodeError, KeyError):
-                error_handler(f'File "{filename}" does not appear to be a valid color file.')
+                error_handler(
+                    self.tr(
+                        'File "{filename}" does not appear to be a valid color file.'
+                    ).format(filename=filename),
+                    parent=self,
+                )
 
 # set icon for Windows - from https://www.pythonguis.com/tutorials/packaging-pyqt5-pyside2-applications-windows-pyinstaller/#building-a-windows-installer-with-installforge
 try:
