@@ -814,7 +814,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def upload_button_handler(self):
         # Get a list of files to upload. Can be one file or multiple files
-        files = QFileDialog.getOpenFileNames(self, filter="RAW Sound File (*.RAW)")[0]
+        files = QFileDialog.getOpenFileNames(
+            self,
+            filter=self.tr('RAW Sound Files (*.RAW)'),
+        )[0]
         if(files):
             files.sort()
             if self.anima_is_NXT():
@@ -837,7 +840,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             # Prepare info display
             self.log.info(f'Uploading file: {os.path.basename(file)}')
             self.log.debug(f'File path: {file}')
-            fupd.fileNameLabel.setText(f"File: {os.path.basename(file)}")
+            fupd.set_filename(os.path.basename(file))
             fupd.fileProgressBar.setValue(0)
             fupd.set_file_size(os.path.getsize(file))
             
@@ -845,7 +848,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             try:
                 await self.sc.write_files_to_saber([file], progress_callback=fupd.fileProgressBar.setValue, add_beep=False)
             except Exception as e:
-                error_handler(e, info="We recommend erasing all files on the Anima before uploading again.", parent=self)
+                error_handler(e,
+                              info=self.tr('We recommend erasing all files on the Anima before uploading again.'),
+                              parent=self)
                 fupd.halt = True
             
             # Update display with file completed
