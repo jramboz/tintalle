@@ -8,7 +8,7 @@ from py2saber import Saber_Controller, NoAnimaSaberException, InvalidSaberRespon
 from threadrunner import *
 from dialogs import *
 from animaterminal import AnimaTerminalWindow
-from localization import install_application_translator
+from localization import install_application_translators
 import version_compare as vc
 import update_checker as uc
 import firmware
@@ -1241,9 +1241,9 @@ except ImportError:
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    translator = install_application_translator(
+    translators = install_application_translators(
         app,
-        os.path.join(resourcedir, "translations"),
+        os.path.join(resourcedir, 'translations')
     )
 
     if platform.system() == "Windows":
