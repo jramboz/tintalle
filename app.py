@@ -267,32 +267,36 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.display_connection_status(SCStatus.DISCONNECTED)
         else:
             self.display_connection_status(SCStatus.NO_SABER)
-    
+
     def display_connection_status(self, status: SCStatus) -> None:
-        '''Update the GUI to reflect the connection status'''
+        """Update the GUI to reflect the connection status."""
         if status == SCStatus.SEARCHING:
             self.saber_select_box.clear()
             self.connect_button.setEnabled(False)
-            self.status_label.setText('SEARCHING...')
+            self.status_label.setText(self.tr('SEARCHING...'))
             self.set_ui_enabled(False)
+
         elif status == SCStatus.CONNECTED:
             self.connect_button.setEnabled(True)
-            self.connect_button.setText('Disconnect')
-            self.status_label.setText('CONNECTED')
+            self.connect_button.setText(self.tr('Disconnect'))
+            self.status_label.setText(self.tr('CONNECTED'))
             self.set_ui_enabled(True)
+
         elif status == SCStatus.CONNECTING:
             self.connect_button.setEnabled(False)
-            self.status_label.setText('CONNECTING...')
+            self.status_label.setText(self.tr('CONNECTING...'))
             self.set_ui_enabled(False)
+
         elif status == SCStatus.DISCONNECTED:
             self.connect_button.setEnabled(True)
-            self.connect_button.setText('Connect')
-            self.status_label.setText('DISCONNECTED')
+            self.connect_button.setText(self.tr('Connect'))
+            self.status_label.setText(self.tr('DISCONNECTED'))
             self.set_ui_enabled(False)
+
         elif status == SCStatus.NO_SABER:
             self.connect_button.setEnabled(False)
-            self.connect_button.setText('Connect')
-            self.status_label.setText('No Saber Found')
+            self.connect_button.setText(self.tr('Connect'))
+            self.status_label.setText(self.tr("No Saber Found"))
             self.set_ui_enabled(False)
             self.saber_select_box.setEnabled(False)
 
@@ -337,14 +341,14 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 self.display_connection_status(SCStatus.DISCONNECTED)
     
     async def connect_saber(self):
-        '''Connect to a saber and perform initialization actions. Can also be used to refresh saber configuration.'''
+        """Connect to a saber and perform initialization actions. Can also be used to refresh saber configuration."""
         self.display_connection_status(SCStatus.CONNECTING)
         if not self.sc:
             port = self.saber_select_box.currentText()
             self.sc = await Saber_Controller.create(port, gui=True, loglevel=self.log.getEffectiveLevel())
         
         # create a "loading" box while connecting
-        w = Loading_Box(self, "Connecting to saber.")
+        w = Loading_Box(self, self.tr('Connecting to saber.'))
         def _fin(event): # things to do once connection is complete
             if self.saber_config:
                 self.display_connection_status(SCStatus.CONNECTED)
@@ -355,10 +359,10 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         asyncio.ensure_future(self.reload_saber_configuration(w))
 
     async def reload_saber_configuration(self, w: QDialog = None):
-        '''Reload the files list and configuration files from the saber.'''
+        """Reload the files list and configuration files from the saber."""
         # display a "loading" dialog. One can be passed in, otherwise create one.
         if not w:
-            w = Loading_Box(self, "Reading configuration from saber.")
+            w = Loading_Box(self, self.tr('Reading configuration from saber.'))
             w.show()
 
         self.set_ui_enabled(False)
@@ -399,7 +403,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             w.close()
 
     def update_ui_with_config(self):
-        '''Populates UI elements with the config data loaded from the saber.'''
+        """Populates UI elements with the config data loaded from the saber."""
 
         # Clear any displayed configuration
         self.clear_color_ui()
@@ -410,7 +414,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             # create an icon that's just a box filled with the main blade color
             pixmap = QPixmap(self.color_bank_select_box.iconSize())
             pixmap.fill(QColor(*Color.get_mixed_color(*x['color'].values())))
-            self.color_bank_select_box.addItem(QIcon(pixmap), f'Bank #{i+1}')
+            bank_name = self.tr('Bank #{number}').format(number=i + 1)
+            self.color_bank_select_box.addItem(QIcon(pixmap), bank_name)
         activeBank = self.current_config['activeBank']
         self.color_bank_select_box.setCurrentIndex(activeBank)
         self.set_color_inputs_to_color(self.current_config['bank'][activeBank][self.get_selected_effect()])
@@ -445,9 +450,17 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.files_treeWidget.setCurrentItem(self.files_treeWidget.topLevelItem(0))
 
         # Display space usage
-        self.freespace_label.setText('Free Space: ' + getHumanReadableSize(self.space_info['free']))
-        self.usedspace_label.setText('Used Space: ' + getHumanReadableSize(self.space_info['used']))
-        self.totalspace_label.setText('Total Space: ' + getHumanReadableSize(self.space_info['total']))
+        self.freespace_label.setText(self.tr('Free Space: {size}').format(
+            size=getHumanReadableSize(self.space_info["free"]))
+        )
+
+        self.usedspace_label.setText(self.tr('Used Space: {size}').format(
+            size=getHumanReadableSize(self.space_info["used"]))
+        )
+
+        self.totalspace_label.setText(self.tr('Total Space: {size}').format(
+            size=getHumanReadableSize(self.space_info["total"]))
+        )
 
     async def disconnect_saber(self):
         '''Disconnect saber and perform any necessary cleanup'''
@@ -471,8 +484,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.display_connection_status(SCStatus.DISCONNECTED)
 
     async def save_all_changes(self):
-        '''Writes any unsaved configuration changes to the attached Anima.'''
-        w = Loading_Box(self, "Saving configuration to saber.")
+        """Writes any unsaved configuration changes to the attached Anima."""
+        w = Loading_Box(self, self.tr('Saving configuration to saber.'))
         w.show()
 
         # Save only what's been changed
@@ -761,9 +774,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             box.setChecked(False)
             box.blockSignals(False)
         self.files_treeWidget.clear()
-        self.freespace_label.setText('Free Space: ----')
-        self.usedspace_label.setText('Used Space: ----')
-        self.totalspace_label.setText('Total Space: ----')
+        self.freespace_label.setText(self.tr('Free Space: {size}').format(size='----'))
+        self.usedspace_label.setText(self.tr('Used Space: {size}').format(size='----'))
+        self.totalspace_label.setText(self.tr('Total Space: {size}').format(size='----'))
 
     @staticmethod
     def get_effect_for_checkBox(box: QCheckBox) -> str:
@@ -815,8 +828,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             asyncio.ensure_future(self.reload_saber_configuration(w))
 
     async def auto_assign_effects(self, reload_config:bool = True):
-        '''Automatically assign sound files to effects for the files currently on the saber.'''
-        w = Loading_Box(self, "Automatically setting sound effects\nbased on the default naming scheme.")
+        """Automatically assign sound files to effects for the files currently on the saber."""
+        w = Loading_Box(self, self.tr(
+                'Automatically setting sound effects\n'
+                'based on the default naming scheme.'
+            )
+        )
         # TODO: add a box with a progress bar showing which effect is being saved
         w.show()
 
