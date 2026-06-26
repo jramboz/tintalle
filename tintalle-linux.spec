@@ -7,6 +7,7 @@ a = Analysis(
     datas=[
         ("img", "img"),
         ("OpenCore_OEM", "OpenCore_OEM"),
+        ("translations", "translations"),
     ],
     hiddenimports=[],
     hookspath=[],

@@ -8,6 +8,7 @@ from py2saber import Saber_Controller, NoAnimaSaberException, InvalidSaberRespon
 from threadrunner import *
 from dialogs import *
 from animaterminal import AnimaTerminalWindow
+from localization import install_application_translator
 import version_compare as vc
 import update_checker as uc
 import firmware
@@ -49,6 +50,15 @@ class SCStatus(Enum):
     CONNECTED = auto()
     NO_SABER = auto()
 
+SOUND_EFFECT_BY_CHECKBOX = {
+    "poweron_checkBox": "on",
+    "poweroff_checkBox": "off",
+    "hum_checkBox": "hum",
+    "clash_checkBox": "clash",
+    "swing_checkBox": "swing",
+    "smoothswingA_checkBox": "smoothSwingA",
+    "smoothswingB_checkBox": "smoothSwingB",
+}
 
 def getHumanReadableSize(size,precision=2):
     '''Takes a size in bytes and outputs human-readable string.'''
@@ -757,24 +767,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     @staticmethod
     def get_effect_for_checkBox(box: QCheckBox) -> str:
-        '''Returns the sound effect name that corresponds to the specified checkbox.'''
-        match box.text():
-            case 'Power On':
-                return 'on'
-            case 'Power Off':
-                return 'off'
-            case 'Hum':
-                return 'hum'
-            case 'Clash':
-                return 'clash'
-            case 'Swing':
-                return 'swing'
-            case 'SmoothSwing A':
-                return 'smoothSwingA'
-            case 'SmoothSwing B':
-                return 'smoothSwingB'
-            case _:
-                return ''
+        """Return the internal effect name associated with a checkbox."""
+        return SOUND_EFFECT_BY_CHECKBOX.get(box.objectName(), "")
 
     def set_effects_checkboxes(self):
         '''Set the effects checkboxes based on the currently selected sound file.'''
@@ -1127,11 +1121,17 @@ except ImportError:
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    if platform.system == "Windows":
+
+    translator = install_application_translator(
+        app,
+        os.path.join(resourcedir, "translations"),
+    )
+
+    if platform.system() == "Windows":
         icon = ':/img/tintalle.ico'
     else:
         icon = ':/img/tintalle.png'
-    app.setWindowIcon(QIcon(':/img/tintalle.png'))
-    mainwindow = Main_Window()
 
+    app.setWindowIcon(QIcon(icon))
+    mainwindow = Main_Window()
     QtAsyncio.run(handle_sigint=True)
