@@ -350,10 +350,23 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         
         # create a "loading" box while connecting
         w = Loading_Box(self, self.tr('Connecting to saber.'))
-        def _fin(event): # things to do once connection is complete
-            if self.saber_config:
+
+        def _fin(event):
+            # The dialog may also receive a close event after the saber
+            # has already been disconnected or while the app is closing.
+            if (
+                    self.sc is not None
+                    and self.saber_config
+                    and self.saber_info
+            ):
                 self.display_connection_status(SCStatus.CONNECTED)
-                self.log.info(f'Connected to saber.\nSerial Number: {self.saber_info["serial"]}\nFirmware version: {self.saber_info["version"]}')
+                self.log.info(
+                    'Connected to saber.\n'
+                    f'Serial Number: {self.saber_info["serial"]}\n'
+                    f'Firmware version: {self.saber_info["version"]}'
+                )
+
+            event.accept()
         w.closeEvent = _fin
         w.show()
 
@@ -497,8 +510,11 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 await self.save_all_changes()
 
         if button != QMessageBox.Cancel:
-            self.log.info("Disconnecting Anima.")
+            self.log.info('Disconnecting Anima.')
+
             self.sc = None
+            self.saber_info = None
+
             self.display_connection_status(SCStatus.DISCONNECTED)
 
     async def save_all_changes(self):
@@ -975,11 +991,30 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         if self.saber_info and self.saber_info['version'][:4] == 'NXT_':
             return True
         return False
-    
+
     def display_NXT_warning(self):
-        self.log.info('Your saber appears to be an Anima NXT. Tintallë does not support firmware uploads for Anima NXT at this time.')
-        dlg = QMessageBox(QMessageBox.Information, 'Information', 'Anima NXT Detected', QMessageBox.Ok, self)
-        dlg.setInformativeText('Your saber appears to be an Anima NXT. Tintallë does not support firmware uploads for Anima NXT at this time.')
+        self.log.info(
+            'Your saber appears to be an Anima NXT.\n'
+            'Tintallë does not support firmware uploads for '
+            'Anima NXT at this time.'
+        )
+
+        dlg = QMessageBox(
+            QMessageBox.Information,
+            self.tr('Information'),
+            self.tr('Anima NXT Detected'),
+            QMessageBox.Ok,
+            self,
+        )
+
+        dlg.setInformativeText(
+            self.tr(
+                'Your saber appears to be an Anima NXT.\n'
+                'Tintallë does not support firmware uploads for '
+                'Anima NXT at this time.'
+            )
+        )
+
         dlg.exec()
 
     def fw_check_handler(self):
@@ -987,55 +1022,125 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.display_NXT_warning()
             return
 
-        self.log.info('Checking for latest OpenCore firwmare.')
-        fw_info = firmware.check_latest_fw_release()
+        self.log.info('Checking for latest OpenCore firmware.')
+
+        fw_info = firmware.check_latest_fw_release(parent=self)
+
+        if fw_info is None:
+            return
+
         self.log.debug(f'Firmware info retrieved: {fw_info}')
 
-        # if a saber is connected, compare to installed FW version
-        if (self.saber_info): #TODO: store an actual connection state that can be checked
-            self.log.debug('Comparing to latest firmware to version installed on connected saber.')
-            self.log.debug(f'Installed version: {self.saber_info["version"]}, Latest version: {fw_info[0]}')
+        # If a saber is connected, compare its installed firmware
+        # version with the latest available release.
+        if self.saber_info:
+            self.log.debug(
+                'Comparing the latest firmware version with the '
+                'version installed on the connected saber.'
+            )
+            self.log.debug(
+                f'Installed version: {self.saber_info["version"]}, '
+                f'Latest version: {fw_info[0]}'
+            )
+
             if vc.is_higher(fw_info[0], self.saber_info['version']):
-                # Display message and prompt to download/install newer version
                 self.log.info(f'Newer official firmware available: v{fw_info[0]}')
-                r = QMessageBox.question(self, 'New Firmware Available', f'New OpenCore firmware available: v{fw_info[0]}. Would you like to install it?', QMessageBox.Yes | QMessageBox.No)
-                
-                if r == QMessageBox.Yes:
+
+                result = QMessageBox.question(
+                    self,
+                    self.tr('New Firmware Available'),
+                    self.tr(
+                        'New OpenCore firmware available: v{version}.\n'
+                        'Would you like to install it?'
+                    ).format(version=fw_info[0]),
+                    QMessageBox.Yes | QMessageBox.No,
+                )
+
+                if result == QMessageBox.Yes:
                     try:
-                        filename = firmware.download_fw(self, url=fw_info[1])
-                        firmware.upload_firmware(filename, self)
+                        filename = firmware.download_fw(
+                            self,
+                            url=fw_info[1],
+                        )
+
+                        if filename:
+                            firmware.upload_firmware(
+                                filename,
+                                self,
+                            )
+
                     except Exception as e:
                         error_handler(e, parent=self)
+
             else:
-                # Display message
                 self.log.info('No newer firmware available.')
-                dlg = QMessageBox(QMessageBox.Information, 'Information', 'No newer firmware available.', QMessageBox.Ok, self)
-                dlg.setInformativeText(f'There is no newer firmware than the one currently installed on your saber. The latest official OpenCore release is v{fw_info[0]}')
+
+                dlg = QMessageBox(
+                    QMessageBox.Information,
+                    self.tr('Information'),
+                    self.tr('No newer firmware available.'),
+                    QMessageBox.Ok,
+                    self,
+                )
+
+                dlg.setInformativeText(
+                    self.tr(
+                        'There is no newer firmware than the one '
+                        'currently installed on your saber.\n'
+                        'The latest official OpenCore release is '
+                        'v{version}.'
+                    ).format(version=fw_info[0])
+                )
+
                 dlg.exec()
-                
-        else: # no saber connected, display the latest version and offer to download
+
+        else:
+            # No saber is connected. Display the latest release
+            # and offer to download it.
             dlg = QMessageBox(self)
-            dlg.setText(f'The latest official OpenCore release is v{fw_info[0]}')
-            dlg.setInformativeText('Click the Save button to download a copy.')
+            dlg.setWindowTitle(self.tr('Latest Firmware'))
+            dlg.setText(
+                self.tr(
+                    'The latest official OpenCore release is '
+                    'v{version}.'
+                ).format(version=fw_info[0])
+            )
+            dlg.setInformativeText(self.tr('Click the Save button to download a copy.'))
             dlg.setIcon(QMessageBox.Information)
             dlg.setStandardButtons(QMessageBox.Save | QMessageBox.Close)
             dlg.setDefaultButton(QMessageBox.Close)
-            r = dlg.exec()
 
-            if r == QMessageBox.Save:
-                firmware.prompt_for_location_and_download_fw(self, url=fw_info[1])
+            result = dlg.exec()
+
+            if result == QMessageBox.Save:
+                firmware.prompt_for_location_and_download_fw(
+                    self,
+                    url=fw_info[1],
+                )
 
     def install_firmware_from_file_handler(self):
         if self.anima_is_NXT():
             self.display_NXT_warning()
             return
-        
-        fw_file = QFileDialog.getOpenFileName(self, caption='Open Firmware File', filter='OpenCore Firwmare File (*.hex)')[0]
-        if fw_file:
-            try:
-                firmware.upload_firmware(fw_file, self)
-            except Exception as e:
-                error_handler(e, parent=self)
+
+        fw_file = QFileDialog.getOpenFileName(
+            self,
+            caption=self.tr('Open Firmware File'),
+            filter=self.tr(
+                'OpenCore Firmware Files (*.hex)'
+            ),
+        )[0]
+
+        if not fw_file:
+            return
+
+        try:
+            firmware.upload_firmware(
+                fw_file,
+                self,
+            )
+        except Exception as e:
+            error_handler(e, parent=self)
     
     # ---------------------- #
     # Color handling methods #
