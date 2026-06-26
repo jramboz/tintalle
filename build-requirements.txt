@@ -1,6 +1,5 @@
-# Requirements to build with pyinstaller
-# specify this file when using the github pyinstaller action
+# Requirements for building Tintallë with PyInstaller.
+
 pyinstaller
 Pillow
-
 -r requirements.txt

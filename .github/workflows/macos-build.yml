@@ -1,0 +1,118 @@
+name: Diagnose macOS build
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/macos-build.yml"
+      - "app.py"
+      - "requirements.txt"
+      - "build-requirements.txt"
+      - "tintalle-mac.spec"
+      - "packaging/macos/**"
+      - "img/**"
+      - "OpenCore_OEM/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-macos:
+    name: Build macOS Universal2 application
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            build-requirements.txt
+
+      - name: Show build environment
+        shell: bash
+        run: |
+          sw_vers
+          uname -m
+          python --version
+
+          PYTHON_EXECUTABLE="$(
+              python -c 'import sys; print(sys.executable)'
+          )"
+
+          echo "Python executable: ${PYTHON_EXECUTABLE}"
+          file "${PYTHON_EXECUTABLE}"
+          lipo -archs "${PYTHON_EXECUTABLE}" || true
+
+          python - <<'PY'
+          import platform
+          import sys
+          import sysconfig
+
+          print("platform.machine():", platform.machine())
+          print("sys.executable:", sys.executable)
+          print("platform tag:", sysconfig.get_platform())
+          PY
+
+      - name: Install Python build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r build-requirements.txt
+          python -m pip freeze
+
+      - name: Build macOS application
+        run: |
+          pyinstaller \
+            --clean \
+            --noconfirm \
+            tintalle-mac.spec
+
+      - name: Verify application bundle
+        run: |
+          test -d dist/Tintalle.app
+          find dist/Tintalle.app -maxdepth 3 -print
+
+      - name: Verify Universal2 architectures
+        run: |
+          ./packaging/macos/verify-universal2.sh \
+            dist/Tintalle.app
+
+      - name: Verify ad-hoc signature
+        run: |
+          codesign \
+            --verify \
+            --deep \
+            --strict \
+            --verbose=2 \
+            dist/Tintalle.app
+
+      - name: Create macOS archive
+        run: |
+          ditto \
+            -c \
+            -k \
+            --sequesterRsrc \
+            --keepParent \
+            dist/Tintalle.app \
+            dist/Tintalle-macos-universal2.zip
+
+      - name: Upload macOS diagnostic artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: tintalle-macos-universal2-unsigned
+          path: dist/Tintalle-macos-universal2.zip
+          if-no-files-found: error
+          retention-days: 14
