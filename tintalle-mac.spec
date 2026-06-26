@@ -1,13 +1,20 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+
+
+codesign_identity = os.environ.get("MACOS_CODESIGN_IDENTITY")
+entitlements_file = os.environ.get("MACOS_ENTITLEMENTS_FILE")
+
 
 a = Analysis(
-    ['app.py'],
+    ["app.py"],
     pathex=[],
     binaries=[],
-    datas=[('img', 'img'),
-           ('OpenCore_OEM', 'OpenCore_OEM')],
+    datas=[("img", "img"),
+           ("OpenCore_OEM", "OpenCore_OEM"),
            ("translations", "translations"),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -15,6 +22,7 @@ a = Analysis(
     excludes=[],
     noarchive=False,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -22,36 +30,38 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='Tintalle',
+    name="Tintalle",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    target_arch='universal2',
-    codesign_identity=None,
-    entitlements_file=None,
-    icon=['img/tintalle.png'],
+    target_arch="universal2",
+    codesign_identity=codesign_identity,
+    entitlements_file=entitlements_file,
+    icon=["img/tintalle.png"],
 )
+
 coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
-    name='Tintalle',
+    name="Tintalle",
 )
+
 app = BUNDLE(
     coll,
-    name='Tintalle.app',
-    icon='img/tintalle.png',
-    bundle_identifier='com.sublunarysphere.tintalle',
+    name="Tintalle.app",
+    icon="img/tintalle.png",
+    bundle_identifier="com.sublunarysphere.tintalle",
     info_plist={
-        'NSPrincipalClass': 'NSApplication',
-        'NSAppleScriptEnabled': False,
-        "CFBundleShortVersionString":"0.6.1",
-    }
+        "NSPrincipalClass": "NSApplication",
+        "NSAppleScriptEnabled": False,
+        "CFBundleShortVersionString": "0.6.1",
+    },
 )
