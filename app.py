@@ -202,22 +202,23 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     
         self._show_update_available_dialog(release)
 
-    def _show_update_available_dialog(
-        self,
-        release: uc.ReleaseInfo,
-    ) -> None:
+    def _show_update_available_dialog(self, release: uc.ReleaseInfo) -> None:
         """Notify the user that a newer Tintallë release is available."""
-
         dialog = QMessageBox(self)
-        dialog.setWindowTitle("Update Available")
+        dialog.setWindowTitle(self.tr('Update Available'))
         dialog.setIcon(QMessageBox.Information)
         dialog.setText(
-            "A newer version of Tintallë is available."
+            self.tr('A newer version of Tintallë is available.')
         )
         dialog.setInformativeText(
-            f"Installed version: {script_version}\n"
-            f"Latest version: {release.version}\n\n"
-            "Would you like to open the release page?"
+            self.tr(
+                'Installed version: {installed}\n'
+                'Latest version: {latest}\n\n'
+                'Would you like to open the release page?'
+            ).format(
+                installed=script_version,
+                latest=release.version,
+            )
         )
         dialog.setStandardButtons(
             QMessageBox.Open | QMessageBox.Close
@@ -233,7 +234,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
         if not QDesktopServices.openUrl(release_url):
             self.log.warning(
-                "Unable to open the Tintallë release page: %s",
+                'Unable to open the Tintallë release page: %s',
                 release.url,
             )
 
@@ -387,14 +388,24 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.set_ui_enabled(True)
         except asyncio.TimeoutError:
             box = QMessageBox(
-                QMessageBox.Critical, 
-                "ERROR: Operation Timed Out", 
-                '''Tintallë timed out waiting for a response from your Anima. 
-                Please try turning your Anima off and back on, then try again.''',
+                QMessageBox.Critical,
+                self.tr('ERROR: Operation Timed Out'),
+                self.tr(
+                    'Tintallë timed out waiting for a response from your Anima.\n'
+                    'Please try turning your Anima off and back on, '
+                    'then try again.'
+                ),
                 QMessageBox.Close,
-                parent=self)
+                parent=self,
+            )
+
             await self.disconnect_saber()
-            self.log.error('Connection timed out while reading configuration file from Anima.')
+
+            self.log.error(
+                'Connection timed out while reading configuration file '
+                'from Anima.'
+            )
+
             box.exec()
         except Exception as e:
             error_handler(e)
@@ -470,10 +481,17 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             # Prompt user to save or discard changes.
             button = QMessageBox.warning(
                 self,
-                "Unsaved Changes",
-                "You have unsaved configuration changes. Do you want to save changes to the Anima or discard them?",
-                buttons = QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                defaultButton = QMessageBox.Cancel
+                self.tr('Unsaved Changes'),
+                self.tr(
+                    'You have unsaved configuration changes.\n'
+                    'Do you want to save changes to the Anima or discard them?'
+                ),
+                buttons=(
+                        QMessageBox.Save
+                        | QMessageBox.Discard
+                        | QMessageBox.Cancel
+                ),
+                defaultButton=QMessageBox.Cancel,
             )
             if button == QMessageBox.Save:
                 await self.save_all_changes()
@@ -505,22 +523,33 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def reload_config_action_handler(self):
         button = QMessageBox.warning(
             self,
-            "Reload Configuration?",
-            "WARNING! This will reset any unsaved configuration changes.\n\nDo you want to continue?",
+            self.tr('Reload Configuration?'),
+            self.tr(
+                'WARNING! This will reset any unsaved configuration '
+                'changes.\n\n'
+                'Do you want to continue?'
+            ),
             buttons=QMessageBox.Yes | QMessageBox.No,
-            defaultButton=QMessageBox.No
+            defaultButton=QMessageBox.No,
         )
 
         if button == QMessageBox.Yes:
-            asyncio.ensure_future(self.reload_saber_configuration())
+            asyncio.ensure_future(
+                self.reload_saber_configuration()
+            )
 
     def reset_saber_to_defaults_action_handler(self):
         button = QMessageBox.warning(
             self,
-            "Reset to Defaults?",
-            "WARNING! This will erase the saber and reset it to its default configuration. This includes any custom colors and sound fonts.\n\nDo you want to continue?",
+            self.tr('Reset to Defaults?'),
+            self.tr(
+                'WARNING! This will erase the saber and reset it to '
+                'its default configuration.\n'
+                'This includes any custom colors and sound fonts.\n\n'
+                'Do you want to continue?'
+            ),
             buttons=QMessageBox.Yes | QMessageBox.No,
-            defaultButton=QMessageBox.No
+            defaultButton=QMessageBox.No,
         )
 
         if button == QMessageBox.Yes:
