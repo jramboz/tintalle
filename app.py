@@ -559,52 +559,92 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     async def _reset_to_defaults(self):
         self.log.info('Resetting Anima to default configuration.')
-        pd = Progress_Dialog(self, "Resetting Anima", 'Erasing files...', autoclose=False)
+
+        pd = Progress_Dialog(
+            self,
+            self.tr('Resetting Anima'),
+            self.tr('Erasing files...'),
+            autoclose=False,
+        )
         pd.show()
 
         try:
             # Erase files
-            self.log.info("Erasing all files on the Anima.")
-            await self.sc.erase_all_files(progress_callback=pd.progressBar.setValue)
-            
+            self.log.info('Erasing all files on the Anima.')
+            await self.sc.erase_all_files(
+                progress_callback=pd.progressBar.setValue
+            )
+
             # Upload default sound font
-            self.log.info("Uploading default sound font.")
-            pd.messageLabel.setText("Uploading default sound font...")
+            self.log.info('Uploading default sound font.')
+            pd.messageLabel.setText(
+                self.tr('Uploading default sound font...')
+            )
             pd.progressBar.setMaximum(0)
-            files = glob.glob(os.path.join(resourcedir, 'OpenCore_OEM', '*.RAW'))
+
+            files = glob.glob(
+                os.path.join(resourcedir, 'OpenCore_OEM', '*.RAW')
+            )
             files.sort()
             files = self.move_beep_to_last(files)
-            await self._upload_files(files, set_effects=False, reload_config=False, autoclose=True)
+
+            await self._upload_files(
+                files,
+                set_effects=False,
+                reload_config=False,
+                autoclose=True,
+            )
 
             # Send RESET and SAVE commands
             self.log.info('Sending RESET and SAVE commands.')
-            pd.messageLabel.setText("Sending RESET and SAVE commands")
+            pd.messageLabel.setText(
+                self.tr('Sending RESET and SAVE commands')
+            )
             pd.progressBar.setValue(0)
             pd.progressBar.setMaximum(100)
+
             await self.sc.send_command(b'RESET')
             result = await self.sc.read_line()
+
             if result != b'OK RESET\n':
-                raise InvalidSaberResponseException(f'Command: RESET\nResponse: {result}')
+                raise InvalidSaberResponseException(
+                    f'Command: RESET\nResponse: {result}'
+                )
+
             pd.progressBar.setValue(50)
+
             await self.sc.send_command(b'SAVE')
             result = await self.sc.read_line()
+
             if result != b'OK SAVE\n':
-                raise InvalidSaberResponseException(f'Command: SAVE\nResponse: {result}')
+                raise InvalidSaberResponseException(
+                    f'Command: SAVE\nResponse: {result}'
+                )
+
             pd.progressBar.setValue(100)
 
             # Reload config
-            self.log.info("Reloading configuration from Anima")
-            pd.messageLabel.setText("Reloading configuration from Anima")
+            self.log.info('Reloading configuration from Anima')
+            pd.messageLabel.setText(
+                self.tr('Reloading configuration from Anima')
+            )
             pd.progressBar.setMaximum(0)
+
             await self.reload_saber_configuration(w=pd)
 
             pd.progressBar.setMaximum(100)
             pd.progressBar.setValue(100)
-            pd.report("Reset complete!")
+            pd.report(self.tr('Reset complete!'))
 
         except Exception as e:
-            pd.report("An error has occurred. See the log for details.")
+            pd.report(
+                self.tr(
+                    'An error has occurred.\n'
+                    'See the log for details.'
+                )
+            )
             error_handler(e, parent=self)
+
         finally:
             pd.finished()
 
@@ -702,31 +742,59 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def erase_button_handler(self):
         button = QMessageBox.warning(
             self,
-            "Erase All Sound Files?",
-            "WARNING! This will erase all sound files on the saber. You will need to upload all files again.\n\nDo you want to continue?",
+            self.tr('Erase All Sound Files?'),
+            self.tr(
+                'WARNING! This will erase all sound files on the saber.\n'
+                'You will need to upload all files again.\n\n'
+                'Do you want to continue?'
+            ),
             buttons=QMessageBox.Ok | QMessageBox.Cancel,
-            defaultButton=QMessageBox.Cancel
+            defaultButton=QMessageBox.Cancel,
         )
 
         if button == QMessageBox.Ok:
             asyncio.ensure_future(self._erase_all())
 
     async def _erase_all(self, reload_config: bool = True):
-        self.log.info("Erasing all files on connected saber.")
-        
-        pd = Progress_Dialog(parent=self, title="Erasing Saber", message="Erasing all sound files on saber.", autoclose=not reload_config)
+        self.log.info('Erasing all files on connected saber.')
+
+        pd = Progress_Dialog(
+            parent=self,
+            title=self.tr('Erasing Saber'),
+            message=self.tr('Erasing all sound files on saber.'),
+            autoclose=not reload_config,
+        )
         pd.show()
 
-        #worker = Worker(self.sc.erase_all_files)
         try:
-            await self.sc.erase_all_files(progress_callback=pd.progressBar.setValue)
-            pd.report("All sound files on saber have been erased.\nPlease re-load your sound files.")
-            self.log.info("All sound files on saber have been erased. Please re-load your sound files.")
+            await self.sc.erase_all_files(
+                progress_callback=pd.progressBar.setValue
+            )
+
+            pd.report(
+                self.tr(
+                    'All sound files on saber have been erased.\n'
+                    'Please re-load your sound files.'
+                )
+            )
+
+            self.log.info(
+                'All sound files on saber have been erased.\n'
+                'Please re-load your sound files.'
+            )
+
             if reload_config:
                 await self.reload_saber_configuration()
+
         except Exception as e:
-            pd.report("An error has occurred. See the log for details.")
+            pd.report(
+                self.tr(
+                    'An error has occurred. '
+                    'See the log for details.'
+                )
+            )
             error_handler(e, parent=self)
+
         finally:
             pd.finished()
 
