@@ -1,5 +1,5 @@
 import os
-from PySide6.QtCore import QProcess
+from PySide6.QtCore import QCoreApplication, QProcess
 import requests
 from typing import Optional, Tuple
 import logging
@@ -14,19 +14,53 @@ import tempfile
 # TODO: read this from a config file, and allow the user to set it in options somewhere.
 EVO_FIRMWARE_RELEASE_URL = 'https://api.github.com/repos/LamaDiLuce/polaris-opencore/releases/latest'
 
-def check_latest_fw_release(parent: QWidget = None) -> Tuple[str, str]:
-    '''Checks for the latest Polaris OpenCore firmware release.
-    Returns a tuple with the version number and download url as strings.'''
+def check_latest_fw_release(
+    parent: QWidget = None,
+) -> Tuple[str, str]:
+    '''Check for the latest Polaris OpenCore firmware release.
+
+    Return a tuple containing the version and download URL.
+    '''
     try:
         response = requests.get(EVO_FIRMWARE_RELEASE_URL)
+
         if response.status_code == 200:
             data = response.json()
-            return (data['tag_name'], data['assets'][0]['browser_download_url'])
-        else:
-            error_handler('An error occurred while checking for the latest firmware.', 'Try manually downloading the latest release from: ' + EVO_FIRMWARE_RELEASE_URL, parent)
-            return None
-    except:
-        error_handler('Unable to retrieve latest version.', 'Check your internet connection and try again.', parent)
+
+            return (
+                data['tag_name'],
+                data['assets'][0]['browser_download_url'],
+            )
+
+        error_handler(
+            QCoreApplication.translate(
+                'Firmware',
+                'An error occurred while checking for the '
+                'latest firmware.',
+            ),
+            QCoreApplication.translate(
+                'Firmware',
+                'Try manually downloading the latest release '
+                'from: {url}',
+            ).format(url=EVO_FIRMWARE_RELEASE_URL),
+            parent,
+        )
+
+        return None
+
+    except Exception:
+        error_handler(
+            QCoreApplication.translate(
+                'Firmware',
+                'Unable to retrieve the latest version.',
+            ),
+            QCoreApplication.translate(
+                'Firmware',
+                'Check your internet connection and try again.',
+            ),
+            parent,
+        )
+
         return None
 
 class Download_Controller():
@@ -39,7 +73,18 @@ class Download_Controller():
         self.filename: str = None
 
         # set up progress dialog
-        self.pd = Progress_Dialog(parent=self.parent, title='Downloading File', message='Download Progress:', autoclose=autoclose)
+        self.pd = Progress_Dialog(
+            parent=self.parent,
+            title=QCoreApplication.translate(
+                'Firmware',
+                'Downloading File',
+            ),
+            message=QCoreApplication.translate(
+                'Firmware',
+                'Download Progress:',
+            ),
+            autoclose=autoclose,
+        )
 
     def download(self) -> str:
         try:
@@ -54,8 +99,22 @@ class Download_Controller():
                 pass
             return self.filename
 
+
         except Exception as e:
-            error_handler(f'An error has occurred: {e}', self.parent)
+            error_handler(
+                QCoreApplication.translate(
+                    'Firmware',
+                    'An error occurred while downloading the '
+                    'firmware.',
+                ),
+
+                QCoreApplication.translate(
+                    'Firmware',
+                    'Details: {error}',
+                ).format(error=e),
+                parent=self.parent,
+            )
+
             return None
 
     def _gui_progress_handler(self, current, total, width=80):
@@ -69,7 +128,17 @@ class Firmware_Update_Controller():
 
     def __init__(self, fw_file: str, parent: QWidget = None) -> None:
         self.fw_file = fw_file
-        self.display = External_Process_Dialog(parent)
+        self.display = External_Process_Dialog(
+            parent,
+            title=QCoreApplication.translate(
+                'Firmware',
+                'Installing Firmware',
+            ),
+            message=QCoreApplication.translate(
+                'Firmware',
+                'Firmware upload progress:',
+            ),
+        )
     
     def message(self, s):
         self.display.text.appendPlainText(s)
@@ -83,7 +152,17 @@ class Firmware_Update_Controller():
         elif shutil.which('tycmd'): # other OS; check if tycmd is installed somewhere in PATH
             tycmd = shutil.which('tycmd')
         else:
-            error_handler('TYCMD not found', 'Please install TYCMD.', self.display.parent())
+            error_handler(
+                QCoreApplication.translate(
+                    'Firmware',
+                    'TYCMD not found',
+                ),
+                QCoreApplication.translate(
+                    'Firmware',
+                    'Please install TYCMD.',
+                ),
+                self.display.parent(),
+            )
             return
 
         self.p = QProcess()
@@ -125,7 +204,14 @@ def prompt_for_location_and_download_fw(parent: QWidget = None, autoclose: bool 
     if not url:
         url = check_latest_fw_release()[1]
     if url:
-        filedir = QFileDialog.getExistingDirectory(parent, 'Choose Download Location', options=QFileDialog.ShowDirsOnly)
+        filedir = QFileDialog.getExistingDirectory(
+            parent,
+            QCoreApplication.translate(
+                'Firmware',
+                'Choose Download Location',
+            ),
+            options=QFileDialog.ShowDirsOnly,
+        )
         if filedir:
             filename = download_fw(parent=parent, outdir=filedir, autoclose=autoclose, url=url)
             return os.path.join(filedir, filename)

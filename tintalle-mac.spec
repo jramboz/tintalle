@@ -11,9 +11,9 @@ a = Analysis(
     ["app.py"],
     pathex=[],
     binaries=[],
-    datas=[
-        ("img", "img"),
-        ("OpenCore_OEM", "OpenCore_OEM"),
+    datas=[("img", "img"),
+           ("OpenCore_OEM", "OpenCore_OEM"),
+           ("translations", "translations"),
     ],
     hiddenimports=[],
     hookspath=[],

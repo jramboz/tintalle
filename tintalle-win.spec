@@ -5,8 +5,11 @@ a = Analysis(
     ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[('img', 'img'),
-            ('OpenCore_OEM', 'OpenCore_OEM')],
+    datas=[
+        ('img', 'img'),
+        ('OpenCore_OEM', 'OpenCore_OEM'),
+        ('translations', 'translations'),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -15,6 +18,7 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -35,6 +39,7 @@ exe = EXE(
     entitlements_file=None,
     icon=['img\\tintalle.ico'],
 )
+
 coll = COLLECT(
     exe,
     a.binaries,

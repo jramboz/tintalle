@@ -59,31 +59,49 @@ class External_Process_Dialog(Progress_Dialog):
         self.text.appendPlainText(msg)
 
 class File_Upload_Progress_Dialog(QDialog):
-    halt = False # set to True to cancel after the curent file is finished uploading
+    halt = False
 
-    def __init__(self, parent = None, multifile=False, autoclose: bool = False):
+    def __init__(
+        self,
+        parent=None,
+        multifile=False,
+        autoclose: bool = False,
+    ):
         super().__init__(parent)
-        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Cancel)
-        self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.cancel_button_handler)
-        self.setWindowTitle("Uploading Files")
+
+        self.buttonBox = QDialogButtonBox(
+            QDialogButtonBox.Cancel
+        )
+        self.buttonBox.button(
+            QDialogButtonBox.Cancel
+        ).clicked.connect(self.cancel_button_handler)
+
+        self.setWindowTitle(self.tr('Uploading Files'))
         self.setModal(True)
-        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowTitleHint )
+        self.setWindowFlags(
+            QtCore.Qt.Window
+            | QtCore.Qt.CustomizeWindowHint
+            | QtCore.Qt.WindowTitleHint
+        )
 
         self.layout = QVBoxLayout()
-        
-        self.fileNameLabel = QLabel("File: ")
+
+        self.fileNameLabel = QLabel(
+            self.tr('File: {filename}').format(filename='')
+        )
         self.layout.addWidget(self.fileNameLabel)
-        
+
         self.fileProgressBar = QProgressBar()
         self.fileProgressBar.setTextVisible(True)
         self.layout.addWidget(self.fileProgressBar)
-        
+
         self.totalProgressBar = QProgressBar()
+
         if multifile:
             self.totalProgressBar.setTextVisible(True)
             self.totalProgressBar.setValue(0)
             self.layout.addWidget(self.totalProgressBar)
-        
+
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
         self.autoclose = autoclose
@@ -92,6 +110,14 @@ class File_Upload_Progress_Dialog(QDialog):
         '''Set the number of fiiles to be uploaded in this batch.'''
         self.totalProgressBar.setMaximum(num_files)
         self.totalProgressBar.setFormat("%v/%m")
+
+    def set_filename(self, filename: str) -> None:
+        '''Display the name of the file currently being uploaded.'''
+        self.fileNameLabel.setText(
+            self.tr('File: {filename}').format(
+                filename=filename,
+            )
+        )
     
     def file_completed(self):
         '''Update file completed count in progress bar'''
@@ -104,23 +130,27 @@ class File_Upload_Progress_Dialog(QDialog):
     def set_bytes_uploaded(self, b: int):
         '''Set the number of bytes uploaded for the current file'''
         self.fileProgressBar.setValue(b)
-    
+
     def cancel_button_handler(self):
         self.halt = True
         self.buttonBox.button(QDialogButtonBox.Cancel).setEnabled(False)
-        self.buttonBox.button(QDialogButtonBox.Cancel).setText('Canceling...')
+        self.buttonBox.button(QDialogButtonBox.Cancel).setText(self.tr('Canceling...'))
         logging.getLogger().info('Canceling file upload.')
-    
+
     def upload_complete(self):
-        '''Call this when all file uploads are completed and the window can be closed.'''
+        '''Finish the file upload and update the dialog controls.'''
         if self.autoclose:
             self.close()
         else:
-            self.buttonBox.button(QDialogButtonBox.Cancel).setEnabled(True)
-            self.buttonBox.button(QDialogButtonBox.Cancel).setText('Close')
-            self.buttonBox.button(QDialogButtonBox.Cancel).clicked.disconnect()
-            self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
-            self.fileNameLabel.setText('Upload complete!')
+            cancel_button = self.buttonBox.button(QDialogButtonBox.Cancel)
+
+            cancel_button.setEnabled(True)
+            cancel_button.setText(self.tr('Close'))
+            cancel_button.clicked.disconnect()
+            cancel_button.clicked.connect(self.close)
+
+            self.fileNameLabel.setText(self.tr('Upload complete!'))
+
         logging.getLogger().info('Upload complete!')
 
 class Loading_Box(QDialog):

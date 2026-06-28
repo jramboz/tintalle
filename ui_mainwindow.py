@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.1
+## Created by: Qt User Interface Compiler version 6.11.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -567,7 +567,7 @@ class Ui_MainWindow(object):
         self.action_Debug_Mode.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+D", None))
 #endif // QT_CONFIG(shortcut)
         self.action_Reload_Config.setText(QCoreApplication.translate("MainWindow", u"Reload &Config", None))
-        self.action_Check_for_Latest_Firwmare.setText(QCoreApplication.translate("MainWindow", u"&Check for Latest Firwmare", None))
+        self.action_Check_for_Latest_Firwmare.setText(QCoreApplication.translate("MainWindow", u"&Check for Latest Firmware", None))
         self.action_Install_Firmware_from_File.setText(QCoreApplication.translate("MainWindow", u"&Install Firmware from File...", None))
         self.action_about.setText(QCoreApplication.translate("MainWindow", u"&About Tintall\u00eb", None))
         self.action_Save_Log_to_File.setText(QCoreApplication.translate("MainWindow", u"Save Log to File...", None))
@@ -596,7 +596,7 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.refresh_ports_button.setText("")
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Status:", None))
-        self.status_label.setText(QCoreApplication.translate("MainWindow", u"Searching...", None))
+        self.status_label.setText(QCoreApplication.translate("MainWindow", u"SEARCHING...", None))
         self.connect_button.setText(QCoreApplication.translate("MainWindow", u"Connect", None))
         self.color_groupbox.setTitle(QCoreApplication.translate("MainWindow", u"Color Select", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"White", None))
@@ -641,8 +641,8 @@ class Ui_MainWindow(object):
         self.usedspace_label.setText(QCoreApplication.translate("MainWindow", u"Used Space: --- MB", None))
         self.totalspace_label.setText(QCoreApplication.translate("MainWindow", u"Total Space: --- MB", None))
         ___qtreewidgetitem = self.files_treeWidget.headerItem()
-        ___qtreewidgetitem.setText(1, QCoreApplication.translate("MainWindow", u"Size", None));
-        ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"File Name", None));
+        ___qtreewidgetitem.setText(1, QCoreApplication.translate("MainWindow", u"Size", None))
+        ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"File Name", None))
         self.content_tabWidget.setTabText(self.content_tabWidget.indexOf(self.sound_tab), QCoreApplication.translate("MainWindow", u"Sound", None))
         self.logTextBox.setPlaceholderText("")
         self.menuConnection.setTitle(QCoreApplication.translate("MainWindow", u"Connection", None))

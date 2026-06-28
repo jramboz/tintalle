@@ -8,6 +8,7 @@ from py2saber import Saber_Controller, NoAnimaSaberException, InvalidSaberRespon
 from threadrunner import *
 from dialogs import *
 from animaterminal import AnimaTerminalWindow
+from localization import install_application_translators
 import version_compare as vc
 import update_checker as uc
 import firmware
@@ -49,6 +50,15 @@ class SCStatus(Enum):
     CONNECTED = auto()
     NO_SABER = auto()
 
+SOUND_EFFECT_BY_CHECKBOX = {
+    "poweron_checkBox": "on",
+    "poweroff_checkBox": "off",
+    "hum_checkBox": "hum",
+    "clash_checkBox": "clash",
+    "swing_checkBox": "swing",
+    "smoothswingA_checkBox": "smoothSwingA",
+    "smoothswingB_checkBox": "smoothSwingB",
+}
 
 def getHumanReadableSize(size,precision=2):
     '''Takes a size in bytes and outputs human-readable string.'''
@@ -192,22 +202,23 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     
         self._show_update_available_dialog(release)
 
-    def _show_update_available_dialog(
-        self,
-        release: uc.ReleaseInfo,
-    ) -> None:
+    def _show_update_available_dialog(self, release: uc.ReleaseInfo) -> None:
         """Notify the user that a newer Tintallë release is available."""
-
         dialog = QMessageBox(self)
-        dialog.setWindowTitle("Update Available")
+        dialog.setWindowTitle(self.tr('Update Available'))
         dialog.setIcon(QMessageBox.Information)
         dialog.setText(
-            "A newer version of Tintallë is available."
+            self.tr('A newer version of Tintallë is available.')
         )
         dialog.setInformativeText(
-            f"Installed version: {script_version}\n"
-            f"Latest version: {release.version}\n\n"
-            "Would you like to open the release page?"
+            self.tr(
+                'Installed version: {installed}\n'
+                'Latest version: {latest}\n\n'
+                'Would you like to open the release page?'
+            ).format(
+                installed=script_version,
+                latest=release.version,
+            )
         )
         dialog.setStandardButtons(
             QMessageBox.Open | QMessageBox.Close
@@ -223,7 +234,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
         if not QDesktopServices.openUrl(release_url):
             self.log.warning(
-                "Unable to open the Tintallë release page: %s",
+                'Unable to open the Tintallë release page: %s',
                 release.url,
             )
 
@@ -257,32 +268,36 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.display_connection_status(SCStatus.DISCONNECTED)
         else:
             self.display_connection_status(SCStatus.NO_SABER)
-    
+
     def display_connection_status(self, status: SCStatus) -> None:
-        '''Update the GUI to reflect the connection status'''
+        """Update the GUI to reflect the connection status."""
         if status == SCStatus.SEARCHING:
             self.saber_select_box.clear()
             self.connect_button.setEnabled(False)
-            self.status_label.setText('SEARCHING...')
+            self.status_label.setText(self.tr('SEARCHING...'))
             self.set_ui_enabled(False)
+
         elif status == SCStatus.CONNECTED:
             self.connect_button.setEnabled(True)
-            self.connect_button.setText('Disconnect')
-            self.status_label.setText('CONNECTED')
+            self.connect_button.setText(self.tr('Disconnect'))
+            self.status_label.setText(self.tr('CONNECTED'))
             self.set_ui_enabled(True)
+
         elif status == SCStatus.CONNECTING:
             self.connect_button.setEnabled(False)
-            self.status_label.setText('CONNECTING...')
+            self.status_label.setText(self.tr('CONNECTING...'))
             self.set_ui_enabled(False)
+
         elif status == SCStatus.DISCONNECTED:
             self.connect_button.setEnabled(True)
-            self.connect_button.setText('Connect')
-            self.status_label.setText('DISCONNECTED')
+            self.connect_button.setText(self.tr('Connect'))
+            self.status_label.setText(self.tr('DISCONNECTED'))
             self.set_ui_enabled(False)
+
         elif status == SCStatus.NO_SABER:
             self.connect_button.setEnabled(False)
-            self.connect_button.setText('Connect')
-            self.status_label.setText('No Saber Found')
+            self.connect_button.setText(self.tr('Connect'))
+            self.status_label.setText(self.tr("No Saber Found"))
             self.set_ui_enabled(False)
             self.saber_select_box.setEnabled(False)
 
@@ -327,28 +342,41 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 self.display_connection_status(SCStatus.DISCONNECTED)
     
     async def connect_saber(self):
-        '''Connect to a saber and perform initialization actions. Can also be used to refresh saber configuration.'''
+        """Connect to a saber and perform initialization actions. Can also be used to refresh saber configuration."""
         self.display_connection_status(SCStatus.CONNECTING)
         if not self.sc:
             port = self.saber_select_box.currentText()
             self.sc = await Saber_Controller.create(port, gui=True, loglevel=self.log.getEffectiveLevel())
         
         # create a "loading" box while connecting
-        w = Loading_Box(self, "Connecting to saber.")
-        def _fin(event): # things to do once connection is complete
-            if self.saber_config:
+        w = Loading_Box(self, self.tr('Connecting to saber.'))
+
+        def _fin(event):
+            # The dialog may also receive a close event after the saber
+            # has already been disconnected or while the app is closing.
+            if (
+                    self.sc is not None
+                    and self.saber_config
+                    and self.saber_info
+            ):
                 self.display_connection_status(SCStatus.CONNECTED)
-                self.log.info(f'Connected to saber.\nSerial Number: {self.saber_info["serial"]}\nFirmware version: {self.saber_info["version"]}')
+                self.log.info(
+                    'Connected to saber.\n'
+                    f'Serial Number: {self.saber_info["serial"]}\n'
+                    f'Firmware version: {self.saber_info["version"]}'
+                )
+
+            event.accept()
         w.closeEvent = _fin
         w.show()
 
         asyncio.ensure_future(self.reload_saber_configuration(w))
 
     async def reload_saber_configuration(self, w: QDialog = None):
-        '''Reload the files list and configuration files from the saber.'''
+        """Reload the files list and configuration files from the saber."""
         # display a "loading" dialog. One can be passed in, otherwise create one.
         if not w:
-            w = Loading_Box(self, "Reading configuration from saber.")
+            w = Loading_Box(self, self.tr('Reading configuration from saber.'))
             w.show()
 
         self.set_ui_enabled(False)
@@ -373,14 +401,24 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.set_ui_enabled(True)
         except asyncio.TimeoutError:
             box = QMessageBox(
-                QMessageBox.Critical, 
-                "ERROR: Operation Timed Out", 
-                '''Tintallë timed out waiting for a response from your Anima. 
-                Please try turning your Anima off and back on, then try again.''',
+                QMessageBox.Critical,
+                self.tr('ERROR: Operation Timed Out'),
+                self.tr(
+                    'Tintallë timed out waiting for a response from your Anima.\n'
+                    'Please try turning your Anima off and back on, '
+                    'then try again.'
+                ),
                 QMessageBox.Close,
-                parent=self)
+                parent=self,
+            )
+
             await self.disconnect_saber()
-            self.log.error('Connection timed out while reading configuration file from Anima.')
+
+            self.log.error(
+                'Connection timed out while reading configuration file '
+                'from Anima.'
+            )
+
             box.exec()
         except Exception as e:
             error_handler(e)
@@ -389,7 +427,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             w.close()
 
     def update_ui_with_config(self):
-        '''Populates UI elements with the config data loaded from the saber.'''
+        """Populates UI elements with the config data loaded from the saber."""
 
         # Clear any displayed configuration
         self.clear_color_ui()
@@ -400,7 +438,8 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             # create an icon that's just a box filled with the main blade color
             pixmap = QPixmap(self.color_bank_select_box.iconSize())
             pixmap.fill(QColor(*Color.get_mixed_color(*x['color'].values())))
-            self.color_bank_select_box.addItem(QIcon(pixmap), f'Bank #{i+1}')
+            bank_name = self.tr('Bank #{number}').format(number=i + 1)
+            self.color_bank_select_box.addItem(QIcon(pixmap), bank_name)
         activeBank = self.current_config['activeBank']
         self.color_bank_select_box.setCurrentIndex(activeBank)
         self.set_color_inputs_to_color(self.current_config['bank'][activeBank][self.get_selected_effect()])
@@ -435,9 +474,17 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         self.files_treeWidget.setCurrentItem(self.files_treeWidget.topLevelItem(0))
 
         # Display space usage
-        self.freespace_label.setText('Free Space: ' + getHumanReadableSize(self.space_info['free']))
-        self.usedspace_label.setText('Used Space: ' + getHumanReadableSize(self.space_info['used']))
-        self.totalspace_label.setText('Total Space: ' + getHumanReadableSize(self.space_info['total']))
+        self.freespace_label.setText(self.tr('Free Space: {size}').format(
+            size=getHumanReadableSize(self.space_info["free"]))
+        )
+
+        self.usedspace_label.setText(self.tr('Used Space: {size}').format(
+            size=getHumanReadableSize(self.space_info["used"]))
+        )
+
+        self.totalspace_label.setText(self.tr('Total Space: {size}').format(
+            size=getHumanReadableSize(self.space_info["total"]))
+        )
 
     async def disconnect_saber(self):
         '''Disconnect saber and perform any necessary cleanup'''
@@ -447,22 +494,32 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             # Prompt user to save or discard changes.
             button = QMessageBox.warning(
                 self,
-                "Unsaved Changes",
-                "You have unsaved configuration changes. Do you want to save changes to the Anima or discard them?",
-                buttons = QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                defaultButton = QMessageBox.Cancel
+                self.tr('Unsaved Changes'),
+                self.tr(
+                    'You have unsaved configuration changes.\n'
+                    'Do you want to save changes to the Anima or discard them?'
+                ),
+                buttons=(
+                        QMessageBox.Save
+                        | QMessageBox.Discard
+                        | QMessageBox.Cancel
+                ),
+                defaultButton=QMessageBox.Cancel,
             )
             if button == QMessageBox.Save:
                 await self.save_all_changes()
 
         if button != QMessageBox.Cancel:
-            self.log.info("Disconnecting Anima.")
+            self.log.info('Disconnecting Anima.')
+
             self.sc = None
+            self.saber_info = None
+
             self.display_connection_status(SCStatus.DISCONNECTED)
 
     async def save_all_changes(self):
-        '''Writes any unsaved configuration changes to the attached Anima.'''
-        w = Loading_Box(self, "Saving configuration to saber.")
+        """Writes any unsaved configuration changes to the attached Anima."""
+        w = Loading_Box(self, self.tr('Saving configuration to saber.'))
         w.show()
 
         # Save only what's been changed
@@ -482,22 +539,33 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def reload_config_action_handler(self):
         button = QMessageBox.warning(
             self,
-            "Reload Configuration?",
-            "WARNING! This will reset any unsaved configuration changes.\n\nDo you want to continue?",
+            self.tr('Reload Configuration?'),
+            self.tr(
+                'WARNING! This will reset any unsaved configuration '
+                'changes.\n\n'
+                'Do you want to continue?'
+            ),
             buttons=QMessageBox.Yes | QMessageBox.No,
-            defaultButton=QMessageBox.No
+            defaultButton=QMessageBox.No,
         )
 
         if button == QMessageBox.Yes:
-            asyncio.ensure_future(self.reload_saber_configuration())
+            asyncio.ensure_future(
+                self.reload_saber_configuration()
+            )
 
     def reset_saber_to_defaults_action_handler(self):
         button = QMessageBox.warning(
             self,
-            "Reset to Defaults?",
-            "WARNING! This will erase the saber and reset it to its default configuration. This includes any custom colors and sound fonts.\n\nDo you want to continue?",
+            self.tr('Reset to Defaults?'),
+            self.tr(
+                'WARNING! This will erase the saber and reset it to '
+                'its default configuration.\n'
+                'This includes any custom colors and sound fonts.\n\n'
+                'Do you want to continue?'
+            ),
             buttons=QMessageBox.Yes | QMessageBox.No,
-            defaultButton=QMessageBox.No
+            defaultButton=QMessageBox.No,
         )
 
         if button == QMessageBox.Yes:
@@ -507,52 +575,92 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     async def _reset_to_defaults(self):
         self.log.info('Resetting Anima to default configuration.')
-        pd = Progress_Dialog(self, "Resetting Anima", 'Erasing files...', autoclose=False)
+
+        pd = Progress_Dialog(
+            self,
+            self.tr('Resetting Anima'),
+            self.tr('Erasing files...'),
+            autoclose=False,
+        )
         pd.show()
 
         try:
             # Erase files
-            self.log.info("Erasing all files on the Anima.")
-            await self.sc.erase_all_files(progress_callback=pd.progressBar.setValue)
-            
+            self.log.info('Erasing all files on the Anima.')
+            await self.sc.erase_all_files(
+                progress_callback=pd.progressBar.setValue
+            )
+
             # Upload default sound font
-            self.log.info("Uploading default sound font.")
-            pd.messageLabel.setText("Uploading default sound font...")
+            self.log.info('Uploading default sound font.')
+            pd.messageLabel.setText(
+                self.tr('Uploading default sound font...')
+            )
             pd.progressBar.setMaximum(0)
-            files = glob.glob(os.path.join(resourcedir, 'OpenCore_OEM', '*.RAW'))
+
+            files = glob.glob(
+                os.path.join(resourcedir, 'OpenCore_OEM', '*.RAW')
+            )
             files.sort()
             files = self.move_beep_to_last(files)
-            await self._upload_files(files, set_effects=False, reload_config=False, autoclose=True)
+
+            await self._upload_files(
+                files,
+                set_effects=False,
+                reload_config=False,
+                autoclose=True,
+            )
 
             # Send RESET and SAVE commands
             self.log.info('Sending RESET and SAVE commands.')
-            pd.messageLabel.setText("Sending RESET and SAVE commands")
+            pd.messageLabel.setText(
+                self.tr('Sending RESET and SAVE commands')
+            )
             pd.progressBar.setValue(0)
             pd.progressBar.setMaximum(100)
+
             await self.sc.send_command(b'RESET')
             result = await self.sc.read_line()
+
             if result != b'OK RESET\n':
-                raise InvalidSaberResponseException(f'Command: RESET\nResponse: {result}')
+                raise InvalidSaberResponseException(
+                    f'Command: RESET\nResponse: {result}'
+                )
+
             pd.progressBar.setValue(50)
+
             await self.sc.send_command(b'SAVE')
             result = await self.sc.read_line()
+
             if result != b'OK SAVE\n':
-                raise InvalidSaberResponseException(f'Command: SAVE\nResponse: {result}')
+                raise InvalidSaberResponseException(
+                    f'Command: SAVE\nResponse: {result}'
+                )
+
             pd.progressBar.setValue(100)
 
             # Reload config
-            self.log.info("Reloading configuration from Anima")
-            pd.messageLabel.setText("Reloading configuration from Anima")
+            self.log.info('Reloading configuration from Anima')
+            pd.messageLabel.setText(
+                self.tr('Reloading configuration from Anima')
+            )
             pd.progressBar.setMaximum(0)
+
             await self.reload_saber_configuration(w=pd)
 
             pd.progressBar.setMaximum(100)
             pd.progressBar.setValue(100)
-            pd.report("Reset complete!")
+            pd.report(self.tr('Reset complete!'))
 
         except Exception as e:
-            pd.report("An error has occurred. See the log for details.")
+            pd.report(
+                self.tr(
+                    'An error has occurred.\n'
+                    'See the log for details.'
+                )
+            )
             error_handler(e, parent=self)
+
         finally:
             pd.finished()
 
@@ -588,10 +696,15 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             f'tintalle-{datetime.now().strftime('%m-%d-%Y-%H%M%S')}.log'
         )
         filename = QFileDialog.getSaveFileName(
-            self, 
-            'Save Log As...',
+            self,
+            self.tr('Save Log As...'),
             default,
-            'Log Files (*.log)')[0]
+            self.tr('Log Files (*.log)'),
+        )[0]
+
+        if not filename:
+            return
+
         self.log.debug(f'Saving log output to file {filename}')
         
         if filename:
@@ -612,9 +725,14 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             'config.ini'
         )
         filename = QFileDialog.getSaveFileName(
-            self, 
-            'Save config.ini As...',
-            default)[0]
+            self,
+            self.tr('Save config.ini As...'),
+            default,
+        )[0]
+
+        if not filename:
+            return
+
         self.log.debug(f'Saving config.ini to file {filename}')
 
         if filename:
@@ -634,6 +752,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     #         self, 
     #         'Save config.ini As...',
     #         default)[0]
+
+    #     if not filename:
+    #         return
     #     self.log.debug(f'Saving config.ini to file {filename}')
 
     #     if filename:
@@ -650,31 +771,59 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def erase_button_handler(self):
         button = QMessageBox.warning(
             self,
-            "Erase All Sound Files?",
-            "WARNING! This will erase all sound files on the saber. You will need to upload all files again.\n\nDo you want to continue?",
+            self.tr('Erase All Sound Files?'),
+            self.tr(
+                'WARNING! This will erase all sound files on the saber.\n'
+                'You will need to upload all files again.\n\n'
+                'Do you want to continue?'
+            ),
             buttons=QMessageBox.Ok | QMessageBox.Cancel,
-            defaultButton=QMessageBox.Cancel
+            defaultButton=QMessageBox.Cancel,
         )
 
         if button == QMessageBox.Ok:
             asyncio.ensure_future(self._erase_all())
 
     async def _erase_all(self, reload_config: bool = True):
-        self.log.info("Erasing all files on connected saber.")
-        
-        pd = Progress_Dialog(parent=self, title="Erasing Saber", message="Erasing all sound files on saber.", autoclose=not reload_config)
+        self.log.info('Erasing all files on connected saber.')
+
+        pd = Progress_Dialog(
+            parent=self,
+            title=self.tr('Erasing Saber'),
+            message=self.tr('Erasing all sound files on saber.'),
+            autoclose=not reload_config,
+        )
         pd.show()
 
-        #worker = Worker(self.sc.erase_all_files)
         try:
-            await self.sc.erase_all_files(progress_callback=pd.progressBar.setValue)
-            pd.report("All sound files on saber have been erased.\nPlease re-load your sound files.")
-            self.log.info("All sound files on saber have been erased. Please re-load your sound files.")
+            await self.sc.erase_all_files(
+                progress_callback=pd.progressBar.setValue
+            )
+
+            pd.report(
+                self.tr(
+                    'All sound files on saber have been erased.\n'
+                    'Please re-load your sound files.'
+                )
+            )
+
+            self.log.info(
+                'All sound files on saber have been erased.\n'
+                'Please re-load your sound files.'
+            )
+
             if reload_config:
                 await self.reload_saber_configuration()
+
         except Exception as e:
-            pd.report("An error has occurred. See the log for details.")
+            pd.report(
+                self.tr(
+                    'An error has occurred. '
+                    'See the log for details.'
+                )
+            )
             error_handler(e, parent=self)
+
         finally:
             pd.finished()
 
@@ -694,8 +843,15 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def upload_button_handler(self):
         # Get a list of files to upload. Can be one file or multiple files
-        files = QFileDialog.getOpenFileNames(self, filter="RAW Sound File (*.RAW)")[0]
-        if(files):
+        files = QFileDialog.getOpenFileNames(
+            self,
+            filter=self.tr('RAW Sound Files (*.RAW)'),
+        )[0]
+
+        if not files:
+            return
+
+        if files:
             files.sort()
             if self.anima_is_NXT():
                 # move any BEEP.RAW files to last
@@ -717,7 +873,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             # Prepare info display
             self.log.info(f'Uploading file: {os.path.basename(file)}')
             self.log.debug(f'File path: {file}')
-            fupd.fileNameLabel.setText(f"File: {os.path.basename(file)}")
+            fupd.set_filename(os.path.basename(file))
             fupd.fileProgressBar.setValue(0)
             fupd.set_file_size(os.path.getsize(file))
             
@@ -725,7 +881,9 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             try:
                 await self.sc.write_files_to_saber([file], progress_callback=fupd.fileProgressBar.setValue, add_beep=False)
             except Exception as e:
-                error_handler(e, info="We recommend erasing all files on the Anima before uploading again.", parent=self)
+                error_handler(e,
+                              info=self.tr('We recommend erasing all files on the Anima before uploading again.'),
+                              parent=self)
                 fupd.halt = True
             
             # Update display with file completed
@@ -751,30 +909,14 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             box.setChecked(False)
             box.blockSignals(False)
         self.files_treeWidget.clear()
-        self.freespace_label.setText('Free Space: ----')
-        self.usedspace_label.setText('Used Space: ----')
-        self.totalspace_label.setText('Total Space: ----')
+        self.freespace_label.setText(self.tr('Free Space: {size}').format(size='----'))
+        self.usedspace_label.setText(self.tr('Used Space: {size}').format(size='----'))
+        self.totalspace_label.setText(self.tr('Total Space: {size}').format(size='----'))
 
     @staticmethod
     def get_effect_for_checkBox(box: QCheckBox) -> str:
-        '''Returns the sound effect name that corresponds to the specified checkbox.'''
-        match box.text():
-            case 'Power On':
-                return 'on'
-            case 'Power Off':
-                return 'off'
-            case 'Hum':
-                return 'hum'
-            case 'Clash':
-                return 'clash'
-            case 'Swing':
-                return 'swing'
-            case 'SmoothSwing A':
-                return 'smoothSwingA'
-            case 'SmoothSwing B':
-                return 'smoothSwingB'
-            case _:
-                return ''
+        """Return the internal effect name associated with a checkbox."""
+        return SOUND_EFFECT_BY_CHECKBOX.get(box.objectName(), "")
 
     def set_effects_checkboxes(self):
         '''Set the effects checkboxes based on the currently selected sound file.'''
@@ -821,8 +963,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             asyncio.ensure_future(self.reload_saber_configuration(w))
 
     async def auto_assign_effects(self, reload_config:bool = True):
-        '''Automatically assign sound files to effects for the files currently on the saber.'''
-        w = Loading_Box(self, "Automatically setting sound effects\nbased on the default naming scheme.")
+        """Automatically assign sound files to effects for the files currently on the saber."""
+        w = Loading_Box(self, self.tr(
+                'Automatically setting sound effects\n'
+                'based on the default naming scheme.'
+            )
+        )
         # TODO: add a box with a progress bar showing which effect is being saved
         w.show()
 
@@ -845,11 +991,30 @@ class Main_Window(QMainWindow, Ui_MainWindow):
         if self.saber_info and self.saber_info['version'][:4] == 'NXT_':
             return True
         return False
-    
+
     def display_NXT_warning(self):
-        self.log.info('Your saber appears to be an Anima NXT. Tintallë does not support firmware uploads for Anima NXT at this time.')
-        dlg = QMessageBox(QMessageBox.Information, 'Information', 'Anima NXT Detected', QMessageBox.Ok, self)
-        dlg.setInformativeText('Your saber appears to be an Anima NXT. Tintallë does not support firmware uploads for Anima NXT at this time.')
+        self.log.info(
+            'Your saber appears to be an Anima NXT.\n'
+            'Tintallë does not support firmware uploads for '
+            'Anima NXT at this time.'
+        )
+
+        dlg = QMessageBox(
+            QMessageBox.Information,
+            self.tr('Information'),
+            self.tr('Anima NXT Detected'),
+            QMessageBox.Ok,
+            self,
+        )
+
+        dlg.setInformativeText(
+            self.tr(
+                'Your saber appears to be an Anima NXT.\n'
+                'Tintallë does not support firmware uploads for '
+                'Anima NXT at this time.'
+            )
+        )
+
         dlg.exec()
 
     def fw_check_handler(self):
@@ -857,55 +1022,125 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             self.display_NXT_warning()
             return
 
-        self.log.info('Checking for latest OpenCore firwmare.')
-        fw_info = firmware.check_latest_fw_release()
+        self.log.info('Checking for latest OpenCore firmware.')
+
+        fw_info = firmware.check_latest_fw_release(parent=self)
+
+        if fw_info is None:
+            return
+
         self.log.debug(f'Firmware info retrieved: {fw_info}')
 
-        # if a saber is connected, compare to installed FW version
-        if (self.saber_info): #TODO: store an actual connection state that can be checked
-            self.log.debug('Comparing to latest firmware to version installed on connected saber.')
-            self.log.debug(f'Installed version: {self.saber_info["version"]}, Latest version: {fw_info[0]}')
+        # If a saber is connected, compare its installed firmware
+        # version with the latest available release.
+        if self.saber_info:
+            self.log.debug(
+                'Comparing the latest firmware version with the '
+                'version installed on the connected saber.'
+            )
+            self.log.debug(
+                f'Installed version: {self.saber_info["version"]}, '
+                f'Latest version: {fw_info[0]}'
+            )
+
             if vc.is_higher(fw_info[0], self.saber_info['version']):
-                # Display message and prompt to download/install newer version
                 self.log.info(f'Newer official firmware available: v{fw_info[0]}')
-                r = QMessageBox.question(self, 'New Firmware Available', f'New OpenCore firmware available: v{fw_info[0]}. Would you like to install it?', QMessageBox.Yes | QMessageBox.No)
-                
-                if r == QMessageBox.Yes:
+
+                result = QMessageBox.question(
+                    self,
+                    self.tr('New Firmware Available'),
+                    self.tr(
+                        'New OpenCore firmware available: v{version}.\n'
+                        'Would you like to install it?'
+                    ).format(version=fw_info[0]),
+                    QMessageBox.Yes | QMessageBox.No,
+                )
+
+                if result == QMessageBox.Yes:
                     try:
-                        filename = firmware.download_fw(self, url=fw_info[1])
-                        firmware.upload_firmware(filename, self)
+                        filename = firmware.download_fw(
+                            self,
+                            url=fw_info[1],
+                        )
+
+                        if filename:
+                            firmware.upload_firmware(
+                                filename,
+                                self,
+                            )
+
                     except Exception as e:
                         error_handler(e, parent=self)
+
             else:
-                # Display message
                 self.log.info('No newer firmware available.')
-                dlg = QMessageBox(QMessageBox.Information, 'Information', 'No newer firmware available.', QMessageBox.Ok, self)
-                dlg.setInformativeText(f'There is no newer firmware than the one currently installed on your saber. The latest official OpenCore release is v{fw_info[0]}')
+
+                dlg = QMessageBox(
+                    QMessageBox.Information,
+                    self.tr('Information'),
+                    self.tr('No newer firmware available.'),
+                    QMessageBox.Ok,
+                    self,
+                )
+
+                dlg.setInformativeText(
+                    self.tr(
+                        'There is no newer firmware than the one '
+                        'currently installed on your saber.\n'
+                        'The latest official OpenCore release is '
+                        'v{version}.'
+                    ).format(version=fw_info[0])
+                )
+
                 dlg.exec()
-                
-        else: # no saber connected, display the latest version and offer to download
+
+        else:
+            # No saber is connected. Display the latest release
+            # and offer to download it.
             dlg = QMessageBox(self)
-            dlg.setText(f'The latest official OpenCore release is v{fw_info[0]}')
-            dlg.setInformativeText('Click the Save button to download a copy.')
+            dlg.setWindowTitle(self.tr('Latest Firmware'))
+            dlg.setText(
+                self.tr(
+                    'The latest official OpenCore release is '
+                    'v{version}.'
+                ).format(version=fw_info[0])
+            )
+            dlg.setInformativeText(self.tr('Click the Save button to download a copy.'))
             dlg.setIcon(QMessageBox.Information)
             dlg.setStandardButtons(QMessageBox.Save | QMessageBox.Close)
             dlg.setDefaultButton(QMessageBox.Close)
-            r = dlg.exec()
 
-            if r == QMessageBox.Save:
-                firmware.prompt_for_location_and_download_fw(self, url=fw_info[1])
+            result = dlg.exec()
+
+            if result == QMessageBox.Save:
+                firmware.prompt_for_location_and_download_fw(
+                    self,
+                    url=fw_info[1],
+                )
 
     def install_firmware_from_file_handler(self):
         if self.anima_is_NXT():
             self.display_NXT_warning()
             return
-        
-        fw_file = QFileDialog.getOpenFileName(self, caption='Open Firmware File', filter='OpenCore Firwmare File (*.hex)')[0]
-        if fw_file:
-            try:
-                firmware.upload_firmware(fw_file, self)
-            except Exception as e:
-                error_handler(e, parent=self)
+
+        fw_file = QFileDialog.getOpenFileName(
+            self,
+            caption=self.tr('Open Firmware File'),
+            filter=self.tr(
+                'OpenCore Firmware Files (*.hex)'
+            ),
+        )[0]
+
+        if not fw_file:
+            return
+
+        try:
+            firmware.upload_firmware(
+                fw_file,
+                self,
+            )
+        except Exception as e:
+            error_handler(e, parent=self)
     
     # ---------------------- #
     # Color handling methods #
@@ -1027,7 +1262,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def color_save_button_handler(self):
         '''Write the values of the currently displayed bank to the saber.'''
-        w = Loading_Box(self, "Saving configuration to saber.")
+        w = Loading_Box(self, self.tr('Saving configuration to saber.'))
         w.show()
 
         asyncio.ensure_future(self._save_current_color(w))
@@ -1038,7 +1273,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
     def save_all_colors_button_handler(self):
         '''Write the values of all banks to the saber.'''
-        w = Loading_Box(self, "Saving configuration to saber.")
+        w = Loading_Box(self, self.tr('Saving configuration to saber.'))
         w.show()
 
         asyncio.ensure_future(self._save_all_colors(w))
@@ -1083,9 +1318,14 @@ class Main_Window(QMainWindow, Ui_MainWindow):
             'saber_colors.txt'
         )
         filename = QFileDialog.getSaveFileName(
-            self, 
-            'Save Colors As...',
-            default)[0]
+            self,
+            self.tr('Save Colors As...'),
+            default,
+        )[0]
+
+        if not filename:
+            return
+
         self.log.debug(f'Saving colors to file {filename}')
 
         if filename:
@@ -1103,9 +1343,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
     def load_colors_action_handler(self):
         filename = QFileDialog.getOpenFileName(
             self,
-            'Load Colors From...',
-            os.path.expanduser('~')
+            self.tr('Load Colors From...'),
+            os.path.expanduser('~'),
         )[0]
+
+        if not filename:
+            return
 
         if filename:
             try:
@@ -1115,7 +1358,12 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                     self.current_config['bank'] = color_dict['bank']
                     self.update_ui_with_config()
             except (json.JSONDecodeError, KeyError):
-                error_handler(f'File "{filename}" does not appear to be a valid color file.')
+                error_handler(
+                    self.tr(
+                        'File "{filename}" does not appear to be a valid color file.'
+                    ).format(filename=filename),
+                    parent=self,
+                )
 
 # set icon for Windows - from https://www.pythonguis.com/tutorials/packaging-pyqt5-pyside2-applications-windows-pyinstaller/#building-a-windows-installer-with-installforge
 try:
@@ -1127,11 +1375,17 @@ except ImportError:
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    if platform.system == "Windows":
+
+    translators = install_application_translators(
+        app,
+        os.path.join(resourcedir, 'translations')
+    )
+
+    if platform.system() == "Windows":
         icon = ':/img/tintalle.ico'
     else:
         icon = ':/img/tintalle.png'
-    app.setWindowIcon(QIcon(':/img/tintalle.png'))
-    mainwindow = Main_Window()
 
+    app.setWindowIcon(QIcon(icon))
+    mainwindow = Main_Window()
     QtAsyncio.run(handle_sigint=True)
