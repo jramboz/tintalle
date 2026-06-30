@@ -130,10 +130,14 @@ class LocalizationTests(unittest.TestCase):
 
         mock_system_locale.return_value = QLocale('ca_ES')
 
-        localization.install_application_translators(
-            application,
-            'translations',
-        )
+        with patch(
+                'localization.platform.system',
+                return_value='Linux',
+        ):
+            localization.install_application_translators(
+                application,
+                'translations',
+            )
 
         mock_system_locale.assert_called_once_with()
 
@@ -148,6 +152,84 @@ class LocalizationTests(unittest.TestCase):
             'ca_ES',
         )
 
+    @patch('localization.QSettings')
+    def test_reads_macos_preferred_languages(
+        self,
+        mock_settings_class,
+    ):
+        settings = mock_settings_class.return_value
+        settings.value.return_value = ['es-ES']
+
+        result = localization._get_macos_preferred_languages()
+
+        settings.value.assert_called_once_with(
+            'AppleLanguages',
+            [],
+        )
+        self.assertEqual(result, ['es-ES'])
+
+    def test_selects_first_supported_language(self):
+        result = localization._locale_from_language_preferences(
+            [
+                'fr-FR',
+                'ca-ES',
+                'es-ES',
+            ],
+        )
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.name(), 'ca_ES')
+
+    def test_returns_none_for_unsupported_languages(self):
+        result = localization._locale_from_language_preferences(
+            [
+                'fr-FR',
+                'de-DE',
+            ],
+        )
+
+        self.assertIsNone(result)
+
+    def test_uses_macos_preferred_language(self):
+        with (
+            patch(
+                'localization.platform.system',
+                return_value='Darwin',
+            ),
+            patch(
+                'localization._get_macos_preferred_languages',
+                return_value=['es-ES'],
+            ),
+            patch(
+                'localization.QLocale.system',
+            ) as mock_system_locale,
+        ):
+            result = localization._get_default_locale()
+
+        self.assertEqual(result.name(), 'es_ES')
+        mock_system_locale.assert_not_called()
+
+    def test_falls_back_when_macos_languages_are_unsupported(self):
+        system_locale = QLocale('de_DE')
+
+        with (
+            patch(
+                'localization.platform.system',
+                return_value='Darwin',
+            ),
+            patch(
+                'localization._get_macos_preferred_languages',
+                return_value=['fr-FR'],
+            ),
+            patch(
+                'localization.QLocale.system',
+                return_value=system_locale,
+            ) as mock_system_locale,
+        ):
+            result = localization._get_default_locale()
+
+        self.assertEqual(result.name(), 'de_DE')
+        mock_system_locale.assert_called_once_with()
 
 if __name__ == '__main__':
     unittest.main()
