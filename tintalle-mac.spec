@@ -63,5 +63,11 @@ app = BUNDLE(
         "NSPrincipalClass": "NSApplication",
         "NSAppleScriptEnabled": False,
         "CFBundleShortVersionString": "0.6.1",
+        "CFBundleDevelopmentRegion": "en",
+        "CFBundleLocalizations": [
+            "en",
+            "es",
+            "ca",
+        ],
     },
 )
