@@ -24,6 +24,8 @@ from datetime import datetime
 from copy import deepcopy
 import json
 import glob
+import tempfile
+import shutil
 
 script_version = '0.7.0'
 script_authors = 'Jason Ramboz'
@@ -841,17 +843,39 @@ class Main_Window(QMainWindow, Ui_MainWindow):
                 files.append(file)
         return files
 
+    @staticmethod
+    def normalize_raw_extensions(files: list[str]) -> list[str]:
+        '''Ensure file names end in '.RAW' exactly. The Anima requires this and it is case sensitive.
+
+        Files with a lower or mixed case extension are copied to a temporary directory
+        under the corrected name, so the user's original files are left untouched.
+        Returns the list of file paths to upload.'''
+        log = logging.getLogger()
+        normalized = []
+        for file in files:
+            base, ext = os.path.splitext(file)
+            if ext != '.RAW' and ext.upper() == '.RAW':
+                dest = os.path.join(tempfile.mkdtemp(prefix='tintalle_'), os.path.basename(base) + '.RAW')
+                shutil.copy2(file, dest)
+                log.info(f'Capitalizing file extension: {os.path.basename(file)} will be uploaded as {os.path.basename(dest)}')
+                normalized.append(dest)
+            else:
+                normalized.append(file)
+        return normalized
+
     def upload_button_handler(self):
         # Get a list of files to upload. Can be one file or multiple files
         files = QFileDialog.getOpenFileNames(
             self,
-            filter=self.tr('RAW Sound Files (*.RAW)'),
+            filter=self.tr('RAW Sound Files (*.RAW *.raw)'),
         )[0]
 
         if not files:
             return
 
         if files:
+            # The Anima requires the '.RAW' extension to be upper case
+            files = self.normalize_raw_extensions(files)
             files.sort()
             if self.anima_is_NXT():
                 # move any BEEP.RAW files to last
