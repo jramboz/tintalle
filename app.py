@@ -387,10 +387,7 @@ class Main_Window(QMainWindow, Ui_MainWindow):
 
         try:
             # TODO: make timeout customizable in settings
-            config_text = await asyncio.wait_for(
-                self.sc.read_config_ini(),
-                timeout=10,
-            )
+            config_text = await self.sc.read_config_ini(timeout=10)
 
             try:
                 parsed_config = literal_eval(config_text)
