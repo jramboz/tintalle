@@ -92,7 +92,9 @@ find "${APP_DIR}" \
     -iname "Thumbs.db" \
     -delete
 
-# Remove private Pyenv paths while preserving any valid RUNPATH entries.
+# Remove build-machine RUNPATH entries while preserving valid runtime paths.
+# This covers both local Pyenv installations and GitHub Actions toolcache.
+
 while IFS= read -r -d '' elf_file; do
     if ! file "${elf_file}" | grep -q "ELF"; then
         continue
@@ -102,7 +104,7 @@ while IFS= read -r -d '' elf_file; do
         patchelf --print-rpath "${elf_file}" 2>/dev/null || true
     )"
 
-    if [[ "${current_rpath}" != *"/.pyenv/"* ]]; then
+    if [[ -z "${current_rpath}" ]]; then
         continue
     fi
 
@@ -110,9 +112,11 @@ while IFS= read -r -d '' elf_file; do
     IFS=':' read -r -a rpath_entries <<< "${current_rpath}"
 
     for rpath_entry in "${rpath_entries[@]}"; do
-        if [[ "${rpath_entry}" == *"/.pyenv/"* ]]; then
-            continue
-        fi
+        case "${rpath_entry}" in
+            *"/.pyenv/"*|/opt/hostedtoolcache/*)
+                continue
+                ;;
+        esac
 
         if [[ -z "${cleaned_rpath}" ]]; then
             cleaned_rpath="${rpath_entry}"
@@ -121,18 +125,21 @@ while IFS= read -r -d '' elf_file; do
         fi
     done
 
-    printf 'Removing private Pyenv RUNPATH from: %s\n' \
-	"${elf_file#"${PACKAGE_ROOT}"/}"
+    if [[ "${cleaned_rpath}" == "${current_rpath}" ]]; then
+        continue
+    fi
+
+    printf 'Removing build-machine RUNPATH from: %s\n' \
+        "${elf_file#"${PACKAGE_ROOT}"/}"
 
     if [[ -n "${cleaned_rpath}" ]]; then
         patchelf --set-rpath "${cleaned_rpath}" "${elf_file}"
     else
         patchelf --remove-rpath "${elf_file}"
     fi
+
 done < <(
-    find "${APP_DIR}" \
-        -type f \
-        -print0
+    find "${APP_DIR}" -type f -print0
 )
 
 # Install the command-line launcher.

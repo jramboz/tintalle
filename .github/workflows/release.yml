@@ -217,7 +217,7 @@ jobs:
 
     env:
       DEBFULLNAME: ${{ vars.DEBFULLNAME || 'Tintalle CI' }}
-      DEBEMAIL: ${{ vars.DEBEMAIL || 'github-actions[bot]@users.noreply.github.com' }}
+      DEBEMAIL: ${{ vars.DEBEMAIL || 'noreply@github.com' }}
 
     steps:
       - name: Check out repository
@@ -257,6 +257,24 @@ jobs:
             --clean \
             --noconfirm \
             tintalle-linux.spec
+
+      - name: Inspect ARM64 shared libraries
+        if: matrix.arch == 'arm64'
+        shell: bash
+        run: |
+          find dist/Tintalle/_internal -type f \
+            \( -name 'libcairo-gobject.so.2' -o -name '_statistics*.so' \) \
+            -print0 |
+          while IFS= read -r -d '' library; do
+            echo "=== ${library} ==="
+
+            echo "Dynamic dependencies:"
+            readelf -d "${library}" | grep NEEDED || true
+
+            echo "Undefined GLIBC symbols:"
+            readelf -Ws "${library}" |
+              grep -E 'UND.*GLIBC_' || true
+          done
 
       - name: Build Debian package
         env:
