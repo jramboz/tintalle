@@ -197,12 +197,22 @@ jobs:
           print(f"Release version validated: {expected_version}")
           PY
 
+
   build-linux:
-    name: Build Debian package
+    name: Build Debian package (${{ matrix.arch }})
     needs:
       - verify
 
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-22.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
 
     env:
@@ -239,6 +249,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r build-requirements.txt
+          python -m pip check
 
       - name: Build PyInstaller distribution
         run: |
@@ -253,8 +264,33 @@ jobs:
         shell: bash
         run: |
           DEBIAN_VERSION="${RELEASE_VERSION}-1"
-
           ./packaging/linux/build-deb.sh "${DEBIAN_VERSION}"
+
+      - name: Verify Debian architecture
+        shell: bash
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          shopt -s nullglob
+          packages=(dist-packages/*.deb)
+
+          if [[ "${#packages[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one Debian package."
+            exit 1
+          fi
+
+          ACTUAL_ARCH="$(
+            dpkg-deb --field "${packages[0]}" Architecture
+          )"
+
+          echo "Expected architecture: ${EXPECTED_ARCH}"
+          echo "Package architecture: ${ACTUAL_ARCH}"
+          file dist/Tintalle/Tintalle
+
+          if [[ "${ACTUAL_ARCH}" != "${EXPECTED_ARCH}" ]]; then
+            echo "::error::Unexpected Debian package architecture."
+            exit 1
+          fi
 
       - name: Run Lintian
         run: lintian dist-packages/*.deb
@@ -262,10 +298,11 @@ jobs:
       - name: Upload Linux release asset
         uses: actions/upload-artifact@v6
         with:
-          name: release-linux
+          name: release-linux-${{ matrix.arch }}
           path: dist-packages/*.deb
           if-no-files-found: error
           retention-days: 14
+
 
   build-windows:
     name: Build Windows installer
@@ -599,11 +636,12 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Download Linux asset
+      - name: Download Linux assets
         uses: actions/download-artifact@v8
         with:
-          name: release-linux
+          pattern: release-linux-*
           path: release-assets
+          merge-multiple: true
 
       - name: Download Windows asset
         uses: actions/download-artifact@v8
