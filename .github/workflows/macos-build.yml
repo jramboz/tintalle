@@ -70,8 +70,25 @@ jobs:
       - name: Install Python build dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r build-requirements.txt
+          
+          # Pin PySide6 to a version containing the fix for QTBUG-147602.
+          # Qt 6.11.1 crashes on macOS 27.2 during QImage::toCGImage().
+          python -m pip install \
+            -r build-requirements.txt \
+            "PySide6==6.11.3"
+          
           python -m pip freeze
+          
+          # Ensure the bundled Qt version contains the fix.
+          python - <<'PY'
+          from PySide6 import QtCore
+          
+          print("PySide6 version:", QtCore.__version__)
+          print("Qt version:", QtCore.qVersion())
+          
+          assert QtCore.__version__ == "6.11.3"
+          assert QtCore.qVersion() == "6.11.3"
+          PY
 
       - name: Build macOS application
         run: |
