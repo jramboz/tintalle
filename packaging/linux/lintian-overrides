@@ -19,3 +19,8 @@ tintalle binary: shared-library-lacks-prerequisites [usr/lib/tintalle/_internal/
 # intended for inclusion in the official Debian archive, so there is no
 # Debian ITP bug to close.
 tintalle binary: initial-upload-closes-no-bugs
+
+# The following bundled ARM64 libraries do not require an explicit
+# libc dependency. They are supplied unchanged by PyInstaller.
+tintalle [arm64] binary: library-not-linked-against-libc [usr/lib/tintalle/_internal/libcairo-gobject.so.2]
+tintalle [arm64] binary: library-not-linked-against-libc [usr/lib/tintalle/_internal/python3.12/lib-dynload/_statistics.cpython-312-aarch64-linux-gnu.so]
