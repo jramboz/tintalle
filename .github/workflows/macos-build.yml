@@ -76,22 +76,19 @@ jobs:
             -r build-requirements.txt \
             "PySide6==6.11.3"
 
-          # Temporary: use the updated py2saber config.ini reader.
-          # The PyPI release 0.19.5 does not support timeout.
-          python -m pip install --no-deps --force-reinstall \
-            "py2saber @ git+https://github.com/jramboz/py2saber.git@main"
-
           python -m pip check
           python -m pip freeze
 
           # Verify Qt and py2saber compatibility.
           python - <<'PY'
           import inspect
+          from importlib.metadata import version
           from PySide6 import QtCore
           from py2saber import Saber_Controller
 
           print("PySide6 version:", QtCore.__version__)
           print("Qt version:", QtCore.qVersion())
+          print("py2saber version:", version("py2saber"))
 
           assert QtCore.__version__ == "6.11.3"
           assert QtCore.qVersion() == "6.11.3"
