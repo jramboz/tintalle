@@ -524,7 +524,29 @@ jobs:
         shell: bash
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r build-requirements.txt
+          # Match the Qt version validated on macOS 27.2 (QTBUG-147602).
+          python -m pip install \
+            -r build-requirements.txt \
+            "PySide6==6.11.3"
+          python -m pip check
+          python -m pip freeze
+
+          # Fail the release if the dependency APIs are incompatible.
+          python - <<'PY'
+          import inspect
+          from importlib.metadata import version
+          from PySide6 import QtCore
+          from py2saber import Saber_Controller
+
+          print("PySide6 version:", QtCore.__version__)
+          print("Qt version:", QtCore.qVersion())
+          print("py2saber version:", version("py2saber"))
+          assert QtCore.__version__ == "6.11.3"
+          assert QtCore.qVersion() == "6.11.3"
+          assert "timeout" in inspect.signature(
+              Saber_Controller.read_config_ini
+          ).parameters
+          PY
 
       - name: Build signed macOS application
         env:
